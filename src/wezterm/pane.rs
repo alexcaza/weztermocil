@@ -1,23 +1,28 @@
-pub enum SplitDirection {}
+use super::{cli::CLI, tab::Tab};
 
+pub enum SplitDirection {
+    Right,
+    Left,
+    Bottom,
+    Top,
+}
+
+#[derive(Debug)]
 pub struct Pane {
-    number: i32,
+    pub number: String,
+    pub tab: String,
 }
 
 impl Pane {
-    pub fn new() -> Pane {
+    pub fn new(tab: Tab, direction: Option<SplitDirection>) -> Pane {
+        let id = match CLI::split_pane(tab.id.clone(), &direction) {
+            Ok(id) => id,
+            Err(e) => panic!("Failed to split pane: {}", e),
+        };
+
         Pane {
-            // TODO: Implement calling command
-            number: 0,
+            number: id,
+            tab: tab.id,
         }
-    }
-
-    // Would it be nice to know if this was a _new_ pane that's
-    // being returned?
-    pub fn split_pane(&self, direction: &SplitDirection) -> Pane {
-        // TODO: Implement creating new pane
-        // from command to wezterm cli
-
-        Pane { number: 0 }
     }
 }
