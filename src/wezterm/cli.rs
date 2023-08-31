@@ -35,7 +35,7 @@ impl CLI {
         Ok(String::from(strip_trailing_newline(pane_id)))
     }
 
-    pub fn create_tab(cwd: Option<&str>) -> Result<String, Box<dyn Error>> {
+    pub fn spawn(cwd: Option<&str>) -> Result<String, Box<dyn Error>> {
         let mut cmd = CLI::new();
         let mut commands = vec!["cli", "spawn"];
 
