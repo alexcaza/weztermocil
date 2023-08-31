@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use super::cli::CLI;
 
 pub enum SplitDirection {
@@ -43,5 +45,9 @@ impl Pane {
             id,
             parent_id: Some(pane_to_split.clone()),
         }
+    }
+
+    pub fn set_tab_title(&self, title: String) -> Result<(), Box<dyn Error>> {
+        CLI::set_tab_title(self.id.clone(), title.clone())
     }
 }

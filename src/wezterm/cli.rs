@@ -49,4 +49,19 @@ impl CLI {
 
         Ok(String::from(strip_trailing_newline(tab_id)))
     }
+
+    pub fn set_tab_title(pane_id: String, title: String) -> Result<(), Box<dyn Error>> {
+        let mut cmd = CLI::new();
+        let commands = vec![
+            "cli",
+            "set-tab-title",
+            title.as_str(),
+            "--pane-id",
+            pane_id.as_str(),
+        ];
+
+        cmd.args(commands).output()?;
+
+        Ok(())
+    }
 }
