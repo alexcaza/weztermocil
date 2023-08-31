@@ -50,4 +50,8 @@ impl Pane {
     pub fn set_tab_title(&self, title: String) -> Result<(), Box<dyn Error>> {
         CLI::set_tab_title(self.id.clone(), title.clone())
     }
+
+    pub fn run_command(&self, command: String) {
+        CLI::run_command(self.id.clone(), command.clone())
+    }
 }

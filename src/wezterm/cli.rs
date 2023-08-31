@@ -1,4 +1,8 @@
-use std::{error::Error, process::Command, str::from_utf8};
+use std::{
+    error::Error,
+    process::{Command, Stdio},
+    str::from_utf8,
+};
 
 use crate::{format::strip_trailing_newline, WEZTERM_CLI};
 
@@ -63,5 +67,25 @@ impl CLI {
         cmd.args(commands).output()?;
 
         Ok(())
+    }
+
+    pub fn run_command(pane_id: String, command: String) -> () {
+        let cmd = Command::new("echo")
+            .arg(command.as_str())
+            .stdout(Stdio::piped())
+            .spawn()
+            .unwrap();
+
+        CLI::new()
+            .args([
+                "cli",
+                "send-text",
+                "--pane-id",
+                pane_id.as_str(),
+                "--no-paste",
+            ])
+            .stdin(Stdio::from(cmd.stdout.unwrap()))
+            .spawn()
+            .expect("Failed to send command");
     }
 }
