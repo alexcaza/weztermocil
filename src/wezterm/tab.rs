@@ -6,8 +6,8 @@ pub struct Tab {
 }
 
 impl Tab {
-    pub fn new() -> Tab {
-        let id = CLI::create_tab(None);
+    pub fn new(cwd: Option<&str>) -> Tab {
+        let id = CLI::create_tab(cwd);
         match id {
             Ok(id) => Tab { id },
             Err(e) => panic!("Couldn't create new tab! {}", e),

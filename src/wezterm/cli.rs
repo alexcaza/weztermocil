@@ -1,6 +1,6 @@
 use std::{error::Error, process::Command, str::from_utf8};
 
-use crate::{strip_trailing_newline, WEZTERM_CLI};
+use crate::{format::strip_trailing_newline, WEZTERM_CLI};
 
 use super::pane::SplitDirection;
 
@@ -35,10 +35,14 @@ impl CLI {
         Ok(String::from(strip_trailing_newline(pane_id)))
     }
 
-    // TODO: Implement passing in CWD
-    pub fn create_tab(_cwd: Option<String>) -> Result<String, Box<dyn Error>> {
+    pub fn create_tab(cwd: Option<&str>) -> Result<String, Box<dyn Error>> {
         let mut cmd = CLI::new();
-        let commands = vec!["cli", "spawn"];
+        let mut commands = vec!["cli", "spawn"];
+
+        match cwd {
+            Some(dir) => commands.extend(["--cwd", dir].iter()),
+            None => (),
+        };
 
         let output = cmd.args(commands).output()?;
         let tab_id = from_utf8(&output.stdout)?;
