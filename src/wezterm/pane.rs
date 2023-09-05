@@ -11,7 +11,7 @@ pub enum SplitDirection {
 
 // TODO: Refactor to use more efficient
 // data types
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Pane {
     pub id: String,
     pub parent_id: Option<String>,
