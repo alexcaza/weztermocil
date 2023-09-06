@@ -25,7 +25,7 @@ pub enum Layout {
 impl Layout {
     pub fn create(&self, num_panes: NumPanes, parent_pane: Pane) -> Option<Vec<Pane>> {
         if num_panes == NumPanes(1) {
-            // Skip doing anything pane creation
+            // Skip doing any pane creation
             // if there's only 1 pane being passed.
             // We can just run the command in the
             // main pane
