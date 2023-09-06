@@ -69,29 +69,19 @@ fn build_percentages(num_panes: &NumPanes) -> Vec<usize> {
     percentages
 }
 
-// TODO: Split isn't perfectly even, yet. But, it's GoodEnoughTM for now.
 fn split_even(
     num_panes: NumPanes,
     parent_pane: Pane,
     direction: SplitDirection,
 ) -> Option<Vec<Pane>> {
-    let mut panes: Vec<Pane> = vec![parent_pane];
-    let per_pane: usize = 100 - (100 / num_panes.0);
+    let mut panes: Vec<Pane> = vec![];
 
-    for p in 1..num_panes.0 {
-        match panes.get(p - 1) {
-            Some(parent_pane) => {
-                if p < num_panes.0 - 1 {
-                    let pane =
-                        parent_pane.split(Some(direction), &Some(per_pane.to_string()), None);
-                    panes.push(pane);
-                } else {
-                    let pane = parent_pane.split(Some(direction), &Some(String::from("50")), None);
-                    panes.push(pane);
-                }
-            }
-            None => break,
-        }
+    for p in 0..num_panes.0 {
+        let pane_perc = ((1.0 / (num_panes.0 - p) as f32) * 100.0)
+            .round()
+            .to_string();
+        let pane = parent_pane.split(Some(direction), &Some(pane_perc), None);
+        panes.push(pane);
     }
 
     Some(panes)
