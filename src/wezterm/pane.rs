@@ -2,6 +2,7 @@ use std::error::Error;
 
 use super::cli::CLI;
 
+#[derive(Clone, Copy)]
 pub enum SplitDirection {
     Right,
     Left,
@@ -30,13 +31,18 @@ impl Pane {
         }
     }
 
-    pub fn split(&self, direction: Option<SplitDirection>, parent: Option<&Pane>) -> Pane {
+    pub fn split(
+        &self,
+        direction: Option<SplitDirection>,
+        percentage: &Option<String>,
+        parent: Option<&Pane>,
+    ) -> Pane {
         let pane_to_split = match parent {
             Some(pane) => pane.id.clone(),
             None => self.id.clone(),
         };
 
-        let id = match CLI::split_pane(pane_to_split.clone(), &direction) {
+        let id = match CLI::split_pane(pane_to_split.clone(), &direction, &percentage) {
             Ok(id) => id,
             Err(e) => panic!("Failed to split pane: {}", e),
         };

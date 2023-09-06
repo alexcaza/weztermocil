@@ -19,6 +19,7 @@ impl CLI {
     pub fn split_pane(
         pane_id: String,
         direction: &Option<SplitDirection>,
+        percentage: &Option<String>,
     ) -> Result<String, Box<dyn Error>> {
         let mut cmd = CLI::new();
         let mut commands = vec!["cli", "split-pane", "--pane-id", pane_id.as_str()];
@@ -33,8 +34,19 @@ impl CLI {
             commands.push(dir);
         };
 
-        let output = cmd.args(commands).output()?;
-        let pane_id = from_utf8(&output.stdout)?;
+        if let Some(p) = percentage {
+            commands.push("--percent");
+            commands.push(p.as_str());
+        }
+
+        println!("Commands: {:?}", commands);
+
+        let output = cmd.args(commands).output().expect("Failed to create pane");
+        // TODO: Handle non-zero case from call to `.output()` properly
+        // currently it's being swallowed.
+        let pane_id = from_utf8(&output.stdout).expect("Failed to convert from utf8");
+
+        println!("Output: {:?}", output);
 
         Ok(String::from(strip_trailing_newline(pane_id)))
     }
