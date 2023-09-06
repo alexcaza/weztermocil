@@ -110,6 +110,7 @@ fn tiled(num_panes: NumPanes, parent_pane: Pane) -> Option<Vec<Pane>> {
     // 1. Create two columns
     // 2. use main_splits on both columns
     // 3. Create bottom pane
+    let num_panes_even = num_panes.0 % 2 == 0;
     let mut all_panes = vec![];
     let left_pane = parent_pane;
     let right_pane = left_pane.split(
@@ -125,25 +126,22 @@ fn tiled(num_panes: NumPanes, parent_pane: Pane) -> Option<Vec<Pane>> {
         return Some(all_panes);
     }
 
-    if num_panes.0 % 2 == 0 {
-        let per_side = NumPanes(num_panes.0 / 2);
-        let mut left_panes = even_vertical(per_side, left_pane.clone()).unwrap_or(vec![]);
-        let mut right_panes = even_vertical(per_side, right_pane.clone()).unwrap_or(vec![]);
-        all_panes.push(left_pane);
-        all_panes.push(right_pane);
-        all_panes.append(&mut left_panes);
-        all_panes.append(&mut right_panes);
-        Some(all_panes)
+    let per_side;
+    if num_panes_even {
+        per_side = NumPanes(num_panes.0 / 2);
     } else {
-        let per_side = NumPanes((num_panes.0 - 1) / 2);
-        let mut left_panes = even_vertical(per_side, left_pane.clone()).unwrap_or(vec![]);
-        let mut right_panes = even_vertical(per_side, right_pane.clone()).unwrap_or(vec![]);
+        per_side = NumPanes((num_panes.0 - 1) / 2);
+
+        // If panes are odd, create a bottom pane at the top level
         let bottom_pane = left_pane.split(Some(SplitDirection::Bottom), &None, None, true);
-        all_panes.push(left_pane);
-        all_panes.push(right_pane);
-        all_panes.append(&mut left_panes);
-        all_panes.append(&mut right_panes);
         all_panes.push(bottom_pane);
-        Some(all_panes)
     }
+
+    let mut left_panes = even_vertical(per_side, left_pane.clone()).unwrap_or(vec![]);
+    let mut right_panes = even_vertical(per_side, right_pane.clone()).unwrap_or(vec![]);
+    all_panes.push(left_pane);
+    all_panes.push(right_pane);
+    all_panes.append(&mut left_panes);
+    all_panes.append(&mut right_panes);
+    Some(all_panes)
 }
