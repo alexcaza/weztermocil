@@ -105,11 +105,6 @@ fn main_vertical_flipped(num_panes: NumPanes, parent_pane: Pane) -> Option<Vec<P
 }
 
 fn tiled(num_panes: NumPanes, parent_pane: Pane) -> Option<Vec<Pane>> {
-    // If num_panes odd, last pane needs to span both columns
-    // Plan:
-    // 1. Create two columns
-    // 2. use main_splits on both columns
-    // 3. Create bottom pane
     let num_panes_even = num_panes.0 % 2 == 0;
     let mut all_panes = vec![];
     let left_pane = parent_pane;
