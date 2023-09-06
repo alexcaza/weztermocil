@@ -20,6 +20,7 @@ impl CLI {
         pane_id: String,
         direction: &Option<SplitDirection>,
         percentage: &Option<String>,
+        top_level: bool,
     ) -> Result<String, Box<dyn Error>> {
         let mut cmd = CLI::new();
         let mut commands = vec!["cli", "split-pane", "--pane-id", pane_id.as_str()];
@@ -37,6 +38,10 @@ impl CLI {
         if let Some(p) = percentage {
             commands.push("--percent");
             commands.push(p.as_str());
+        }
+
+        if top_level {
+            commands.push("--top-level");
         }
 
         let output = cmd.args(commands).output().expect("Failed to create pane");

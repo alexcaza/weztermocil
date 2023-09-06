@@ -2,7 +2,7 @@ use std::fmt;
 
 use crate::wezterm::pane::{Pane, SplitDirection};
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy)]
 pub struct NumPanes(pub usize);
 
 impl fmt::Display for NumPanes {
@@ -37,7 +37,7 @@ impl Layout {
             Layout::EvenVertical => even_vertical(num_panes, parent_pane.clone()),
             Layout::MainVertical => main_vertical(num_panes, parent_pane.clone()),
             Layout::MainVerticalFlipped => main_vertical_flipped(num_panes, parent_pane.clone()),
-            Layout::Tiled => None,
+            Layout::Tiled => tiled(num_panes, parent_pane.clone()),
             Layout::ThreeColumns => None,
             Layout::DoubleMainVertical => None,
             Layout::DoubleMainHorizontal => None,
@@ -56,7 +56,7 @@ fn split_even(
         let pane_perc = ((1.0 / (num_panes.0 - p) as f32) * 100.0)
             .round()
             .to_string();
-        let pane = parent_pane.split(Some(direction), &Some(pane_perc), None);
+        let pane = parent_pane.split(Some(direction), &Some(pane_perc), None, false);
         panes.push(pane);
     }
 
@@ -72,7 +72,7 @@ fn main_splits(
     parent_pane: Pane,
     direction: SplitDirection,
 ) -> Option<Vec<Pane>> {
-    let main_pane = parent_pane.split(Some(direction), &Some(String::from("50")), None);
+    let main_pane = parent_pane.split(Some(direction), &Some(String::from("50")), None, false);
 
     match split_even(
         NumPanes(num_panes.0 - 1),
@@ -102,4 +102,48 @@ fn main_vertical(num_panes: NumPanes, parent_pane: Pane) -> Option<Vec<Pane>> {
 
 fn main_vertical_flipped(num_panes: NumPanes, parent_pane: Pane) -> Option<Vec<Pane>> {
     main_splits(num_panes, parent_pane, SplitDirection::Right)
+}
+
+fn tiled(num_panes: NumPanes, parent_pane: Pane) -> Option<Vec<Pane>> {
+    // If num_panes odd, last pane needs to span both columns
+    // Plan:
+    // 1. Create two columns
+    // 2. use main_splits on both columns
+    // 3. Create bottom pane
+    let mut all_panes = vec![];
+    let left_pane = parent_pane;
+    let right_pane = left_pane.split(
+        Some(SplitDirection::Right),
+        &Some(String::from("50")),
+        None,
+        false,
+    );
+
+    if num_panes.0 == 2 {
+        all_panes.push(left_pane);
+        all_panes.push(right_pane);
+        return Some(all_panes);
+    }
+
+    if num_panes.0 % 2 == 0 {
+        let per_side = NumPanes(num_panes.0 / 2);
+        let mut left_panes = even_vertical(per_side, left_pane.clone()).unwrap_or(vec![]);
+        let mut right_panes = even_vertical(per_side, right_pane.clone()).unwrap_or(vec![]);
+        all_panes.push(left_pane);
+        all_panes.push(right_pane);
+        all_panes.append(&mut left_panes);
+        all_panes.append(&mut right_panes);
+        Some(all_panes)
+    } else {
+        let per_side = NumPanes((num_panes.0 - 1) / 2);
+        let mut left_panes = even_vertical(per_side, left_pane.clone()).unwrap_or(vec![]);
+        let mut right_panes = even_vertical(per_side, right_pane.clone()).unwrap_or(vec![]);
+        let bottom_pane = left_pane.split(Some(SplitDirection::Bottom), &None, None, true);
+        all_panes.push(left_pane);
+        all_panes.push(right_pane);
+        all_panes.append(&mut left_panes);
+        all_panes.append(&mut right_panes);
+        all_panes.push(bottom_pane);
+        Some(all_panes)
+    }
 }

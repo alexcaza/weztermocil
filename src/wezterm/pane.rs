@@ -36,13 +36,14 @@ impl Pane {
         direction: Option<SplitDirection>,
         percentage: &Option<String>,
         parent: Option<&Pane>,
+        top_level: bool,
     ) -> Pane {
         let pane_to_split = match parent {
             Some(pane) => pane.id.clone(),
             None => self.id.clone(),
         };
 
-        let id = match CLI::split_pane(pane_to_split.clone(), &direction, &percentage) {
+        let id = match CLI::split_pane(pane_to_split.clone(), &direction, &percentage, top_level) {
             Ok(id) => id,
             Err(e) => panic!("Failed to split pane: {}", e),
         };
