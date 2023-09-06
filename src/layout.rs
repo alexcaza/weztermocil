@@ -36,7 +36,7 @@ impl Layout {
             Layout::EvenHorizontal => even_horizontal(num_panes, parent_pane.clone()),
             Layout::EvenVertical => even_vertical(num_panes, parent_pane.clone()),
             Layout::MainVertical => main_vertical(num_panes, parent_pane.clone()),
-            Layout::MainVerticalFlipped => None,
+            Layout::MainVerticalFlipped => main_vertical_flipped(num_panes, parent_pane.clone()),
             Layout::Tiled => None,
             Layout::ThreeColumns => None,
             Layout::DoubleMainVertical => None,
@@ -67,6 +67,27 @@ fn split_even(
     }
 }
 
+fn main_splits(
+    num_panes: NumPanes,
+    parent_pane: Pane,
+    direction: SplitDirection,
+) -> Option<Vec<Pane>> {
+    let main_pane = parent_pane.split(Some(direction), &Some(String::from("50")), None);
+
+    match split_even(
+        NumPanes(num_panes.0 - 1),
+        main_pane.clone(),
+        SplitDirection::Bottom,
+    ) {
+        Some(mut panes) => {
+            let mut all_panes = vec![main_pane.clone()];
+            all_panes.append(&mut panes);
+            Some(all_panes)
+        }
+        None => Some(vec![main_pane]),
+    }
+}
+
 fn even_horizontal(num_panes: NumPanes, parent_pane: Pane) -> Option<Vec<Pane>> {
     split_even(num_panes, parent_pane, SplitDirection::Right)
 }
@@ -76,19 +97,9 @@ fn even_vertical(num_panes: NumPanes, parent_pane: Pane) -> Option<Vec<Pane>> {
 }
 
 fn main_vertical(num_panes: NumPanes, parent_pane: Pane) -> Option<Vec<Pane>> {
-    let right_pane =
-        parent_pane.split(Some(SplitDirection::Right), &Some(String::from("50")), None);
+    main_splits(num_panes, parent_pane, SplitDirection::Left)
+}
 
-    match split_even(
-        NumPanes(num_panes.0 - 1),
-        right_pane.clone(),
-        SplitDirection::Bottom,
-    ) {
-        Some(mut panes) => {
-            let mut all_panes = vec![right_pane.clone()];
-            all_panes.append(&mut panes);
-            Some(all_panes)
-        }
-        None => Some(vec![right_pane]),
-    }
+fn main_vertical_flipped(num_panes: NumPanes, parent_pane: Pane) -> Option<Vec<Pane>> {
+    main_splits(num_panes, parent_pane, SplitDirection::Right)
 }
