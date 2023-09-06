@@ -45,30 +45,6 @@ impl Layout {
     }
 }
 
-fn build_percentages(num_panes: &NumPanes) -> Vec<usize> {
-    let max: usize = 100;
-    let per_pane: usize = max / num_panes.0;
-    let mut percentages: Vec<usize> = vec![];
-
-    // TODO: build percentages for each pane based on the previous
-    // percentage. Inspo: https://wezfurlong.org/wezterm/config/lua/gui-events/gui-startup.html
-    // It's all about _remaining available space_
-    for p in 0..num_panes.0 - 1 {
-        if p == 0 {
-            let percentage = &max;
-            percentages.push(percentage - per_pane);
-        } else {
-            let percentage = percentages.get(p - 1).unwrap_or(&max);
-            percentages.push(percentage - per_pane);
-        }
-    }
-
-    println!("percentages: {:?}", percentages);
-
-    percentages.reverse();
-    percentages
-}
-
 fn split_even(
     num_panes: NumPanes,
     parent_pane: Pane,
