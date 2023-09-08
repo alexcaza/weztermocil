@@ -38,7 +38,7 @@ impl Layout {
             Layout::MainVertical => main_vertical(num_panes, parent_pane.clone()),
             Layout::MainVerticalFlipped => main_vertical_flipped(num_panes, parent_pane.clone()),
             Layout::Tiled => tiled(num_panes, parent_pane.clone()),
-            Layout::ThreeColumns => None,
+            Layout::ThreeColumns => three_columns(num_panes, parent_pane.clone()),
             Layout::DoubleMainVertical => None,
             Layout::DoubleMainHorizontal => None,
         }
@@ -139,4 +139,32 @@ fn tiled(num_panes: NumPanes, parent_pane: Pane) -> Option<Vec<Pane>> {
     all_panes.append(&mut left_panes);
     all_panes.append(&mut right_panes);
     Some(all_panes)
+}
+
+fn three_columns(num_panes: NumPanes, parent_pane: Pane) -> Option<Vec<Pane>> {
+    // We have one pane already, so we only need 2 more columns.
+    // TODO: Not correctly splitting. Doesn't take parent_pane size into account
+    let cols = even_horizontal(NumPanes(2), parent_pane.clone()).unwrap_or(vec![]);
+    let num_cols = cols.len();
+    // Column panes already created, so remove them from the total count.
+    let total_panes_to_gen = num_panes.0 - num_cols;
+    let odd_num_panes = total_panes_to_gen % num_cols != 0;
+    let panes_per_col = (total_panes_to_gen as f32 / 3.0).ceil();
+    let mut panes = vec![];
+
+    for (i, p) in cols.iter().enumerate() {
+        if i == num_cols && odd_num_panes {
+            break;
+        }
+
+        // TODO: Not correctly splitting. Can't take into account parent pane size.
+        let v_panes = even_vertical(NumPanes(panes_per_col as usize), p.clone());
+
+        if let Some(mut created_panes) = v_panes {
+            panes.append(&mut created_panes);
+        }
+    }
+
+    println!("Panes: {:?}", panes);
+    Some(panes)
 }
