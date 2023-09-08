@@ -52,7 +52,7 @@ fn split_even(
 ) -> Option<Vec<Pane>> {
     let mut panes: Vec<Pane> = vec![];
 
-    for p in 0..num_panes.0 {
+    for p in 0..num_panes.0 - 1 {
         let pane_perc = ((1.0 / (num_panes.0 - p) as f32) * 100.0)
             .round()
             .to_string();
