@@ -158,26 +158,43 @@ fn tiled(total_panes: TotalPanes, starting_pane: Pane) -> Option<Vec<Pane>> {
 }
 
 fn three_columns(total_panes: TotalPanes, starting_pane: Pane) -> Option<Vec<Pane>> {
-    let cols =
+    let mut cols =
         split_even(TotalPanes(3), starting_pane.clone(), SplitDirection::Right).unwrap_or(vec![]);
+
+    // HACK: Wezterm's split rules are a little finnicky.
+    // When generating the columns, the last column gets put
+    // in the center spot in the tab instead of at the end, which is what
+    // would be expected from 3 horizontal splits.
+    // To combat this, we manually move the last tab back one in the vector.
+
+    // The columns should exist. It's safe to panic otherwise.
+    let last_col = cols.pop().unwrap();
+    let middle_col = cols.pop().unwrap();
+    cols.push(last_col);
+    cols.push(middle_col);
+
     let num_cols = cols.len();
     // Column panes already created, so remove them from the total count.
     let total_panes_to_gen = total_panes.0 - num_cols;
-    let odd_total_panes = total_panes_to_gen % num_cols != 0;
     let panes_per_col = (total_panes_to_gen as f32 / 3.0).ceil();
+    let mut panes_left = total_panes_to_gen;
     let mut panes = vec![];
-    println!("panes_per_col: {}", panes_per_col);
 
-    for (i, p) in cols.iter().enumerate() {
-        if i == num_cols - 1 && odd_total_panes {
+    for pane in cols.iter() {
+        // When we've run out of panes, stop iterating.
+        // This accounts for scenarios where we get less
+        // rows than total columns, or an odd number of rows.
+        if panes_left == 0 {
             break;
         }
 
         let v_panes = split_even(
-            TotalPanes(panes_per_col as usize),
-            p.clone(),
+            TotalPanes(panes_per_col as usize + 1),
+            pane.clone(),
             SplitDirection::Bottom,
         );
+
+        panes_left -= panes_per_col as usize;
 
         if let Some(mut created_panes) = v_panes {
             panes.append(&mut created_panes);
