@@ -41,8 +41,10 @@ impl Layout {
             }
             Layout::Tiled => tiled(total_panes, starting_pane.clone()),
             Layout::ThreeColumns => three_columns(total_panes, starting_pane.clone()),
-            Layout::DoubleMainVertical => None,
-            Layout::DoubleMainHorizontal => None,
+            Layout::DoubleMainVertical => double_main_vertical(total_panes, starting_pane.clone()),
+            Layout::DoubleMainHorizontal => {
+                double_main_horizontal(total_panes, starting_pane.clone())
+            }
         }
     }
 }
@@ -199,6 +201,85 @@ fn three_columns(total_panes: TotalPanes, starting_pane: Pane) -> Option<Vec<Pan
         if let Some(mut created_panes) = v_panes {
             panes.append(&mut created_panes);
         }
+    }
+
+    Some(panes)
+}
+
+fn double_main_vertical(total_panes: TotalPanes, starting_pane: Pane) -> Option<Vec<Pane>> {
+    let cols =
+        split_even(TotalPanes(3), starting_pane.clone(), SplitDirection::Right).unwrap_or(vec![]);
+
+    // HACK: Wezterm's split rules are a little finnicky.
+    // When generating the columns, the last column gets put
+    // in the center spot in the tab instead of at the end, which is what
+    // would be expected from 3 horizontal splits.
+    // To combat this, we manually move the last tab back one in the vector.
+
+    // The columns should exist. It's safe to panic otherwise.
+    let visually_last_col = cols.get(1).unwrap();
+
+    let num_cols = cols.len();
+    // Column panes already created, so remove them from the total count.
+    let total_panes_to_gen = total_panes.0 - num_cols;
+    let mut panes = vec![];
+
+    if total_panes_to_gen == 0 {
+        return Some(cols);
+    }
+
+    let v_panes = split_even(
+        TotalPanes(total_panes_to_gen + 1),
+        visually_last_col.clone(),
+        SplitDirection::Bottom,
+    );
+
+    if let Some(mut created_panes) = v_panes {
+        panes.append(&mut created_panes);
+    }
+
+    Some(panes)
+}
+
+fn double_main_horizontal(total_panes: TotalPanes, starting_pane: Pane) -> Option<Vec<Pane>> {
+    let rows =
+        split_even(TotalPanes(2), starting_pane.clone(), SplitDirection::Bottom).unwrap_or(vec![]);
+    // TODO: Not use clone
+    let mut panes = rows.clone();
+
+    // HACK: Wezterm's split rules are a little finnicky.
+    // When generating the columns, the last column gets put
+    // in the center spot in the tab instead of at the end, which is what
+    // would be expected from 3 horizontal splits.
+    // To combat this, we manually move the last tab back one in the vector.
+
+    // The columns should exist. It's safe to panic otherwise.
+    let visually_first_row = rows.get(0).unwrap();
+    let visually_last_row = rows.get(1).unwrap();
+
+    panes.push(visually_last_row.split(
+        Some(SplitDirection::Right),
+        &Some(String::from("50")),
+        None,
+        false,
+    ));
+
+    let num_panes = panes.len();
+    // Column panes already created, so remove them from the total count.
+    let total_panes_to_gen = total_panes.0 - num_panes;
+
+    if total_panes_to_gen == 0 {
+        return Some(panes);
+    }
+
+    let h_panes = split_even(
+        TotalPanes(total_panes_to_gen + 1),
+        visually_first_row.clone(),
+        SplitDirection::Right,
+    );
+
+    if let Some(mut created_panes) = h_panes {
+        panes.append(&mut created_panes);
     }
 
     Some(panes)
