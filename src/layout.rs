@@ -209,6 +209,8 @@ fn three_columns(total_panes: TotalPanes, starting_pane: Pane) -> Option<Vec<Pan
 fn double_main_vertical(total_panes: TotalPanes, starting_pane: Pane) -> Option<Vec<Pane>> {
     let cols =
         split_even(TotalPanes(3), starting_pane.clone(), SplitDirection::Right).unwrap_or(vec![]);
+    // TODO: Not use clone; this might be causing the double id issue
+    let mut panes = cols.clone();
 
     // HACK: Wezterm's split rules are a little finnicky.
     // When generating the columns, the last column gets put
@@ -222,10 +224,9 @@ fn double_main_vertical(total_panes: TotalPanes, starting_pane: Pane) -> Option<
     let num_cols = cols.len();
     // Column panes already created, so remove them from the total count.
     let total_panes_to_gen = total_panes.0 - num_cols;
-    let mut panes = vec![];
 
     if total_panes_to_gen == 0 {
-        return Some(cols);
+        return Some(panes);
     }
 
     let v_panes = split_even(
