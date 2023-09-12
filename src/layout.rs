@@ -247,12 +247,6 @@ fn double_main_horizontal(total_panes: TotalPanes, starting_pane: Pane) -> Optio
     // TODO: Not use clone
     let mut panes = rows.clone();
 
-    // HACK: Wezterm's split rules are a little finnicky.
-    // When generating the columns, the last column gets put
-    // in the center spot in the tab instead of at the end, which is what
-    // would be expected from 3 horizontal splits.
-    // To combat this, we manually move the last tab back one in the vector.
-
     // The columns should exist. It's safe to panic otherwise.
     let visually_first_row = rows.get(0).unwrap();
     let visually_last_row = rows.get(1).unwrap();
@@ -265,6 +259,7 @@ fn double_main_horizontal(total_panes: TotalPanes, starting_pane: Pane) -> Optio
     ));
 
     let num_panes = panes.len();
+
     // Column panes already created, so remove them from the total count.
     let total_panes_to_gen = total_panes.0 - num_panes;
 
