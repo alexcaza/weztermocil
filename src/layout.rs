@@ -98,11 +98,11 @@ fn main_splits(
         SplitDirection::Bottom,
     ) {
         Some(mut panes) => {
-            let mut all_panes = vec![main_pane.clone()];
+            let mut all_panes = vec![starting_pane.clone()];
             all_panes.append(&mut panes);
             Some(all_panes)
         }
-        None => Some(vec![main_pane]),
+        None => Some(vec![starting_pane.clone()]),
     }
 }
 
@@ -115,11 +115,11 @@ fn even_vertical(total_panes: TotalPanes, starting_pane: Pane) -> Option<Vec<Pan
 }
 
 fn main_vertical(total_panes: TotalPanes, starting_pane: Pane) -> Option<Vec<Pane>> {
-    main_splits(total_panes, starting_pane, SplitDirection::Left)
+    main_splits(total_panes, starting_pane, SplitDirection::Right)
 }
 
 fn main_vertical_flipped(total_panes: TotalPanes, starting_pane: Pane) -> Option<Vec<Pane>> {
-    main_splits(total_panes, starting_pane, SplitDirection::Right)
+    main_splits(total_panes, starting_pane, SplitDirection::Left)
 }
 
 fn tiled(total_panes: TotalPanes, starting_pane: Pane) -> Option<Vec<Pane>> {
