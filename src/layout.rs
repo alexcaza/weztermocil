@@ -152,8 +152,6 @@ fn tiled(total_panes: TotalPanes, starting_pane: Pane) -> Option<Vec<Pane>> {
 
     let mut left_panes = even_vertical(per_side, left_pane.clone()).unwrap_or(vec![]);
     let mut right_panes = even_vertical(per_side, right_pane.clone()).unwrap_or(vec![]);
-    all_panes.push(left_pane);
-    all_panes.push(right_pane);
     all_panes.append(&mut left_panes);
     all_panes.append(&mut right_panes);
     Some(all_panes)
