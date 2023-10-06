@@ -56,12 +56,11 @@ fn split_even(
 ) -> Option<Vec<Pane>> {
     let mut panes: Vec<Pane> = vec![starting_pane.clone()];
 
-    let remaining_panes_count = if total_panes.0 - panes.len() == 0 {
-        // There should _always_ be at least one pane
-        panes.len()
-    } else {
-        total_panes.0 - panes.len()
-    };
+    let remaining_panes_count = total_panes.0 - panes.len();
+
+    if remaining_panes_count == 0 {
+        return Some(panes);
+    }
 
     // If there's one other pane to create, split parent once at 50% and return
     if remaining_panes_count == 1 {
@@ -78,11 +77,7 @@ fn split_even(
         panes.push(pane);
     }
 
-    if panes.len() > 0 {
-        Some(panes)
-    } else {
-        None
-    }
+    Some(panes)
 }
 
 fn main_splits(
