@@ -241,38 +241,44 @@ fn double_main_vertical(total_panes: TotalPanes, starting_pane: Pane) -> Option<
 }
 
 fn double_main_horizontal(total_panes: TotalPanes, starting_pane: Pane) -> Option<Vec<Pane>> {
-    let rows =
-        split_even(TotalPanes(2), starting_pane.clone(), SplitDirection::Bottom).unwrap_or(vec![]);
-    // TODO: Not use clone
-    let mut panes = rows.clone();
+    let row_count = 2;
+    let rows = split_even(
+        TotalPanes(row_count),
+        starting_pane.clone(),
+        SplitDirection::Bottom,
+    )
+    .unwrap_or(vec![]);
 
     // The columns should exist. It's safe to panic otherwise.
     let visually_first_row = rows.get(0).unwrap();
     let visually_last_row = rows.get(1).unwrap();
 
-    panes.push(visually_last_row.split(
-        Some(SplitDirection::Right),
-        &Some(String::from("50")),
-        None,
-        false,
-    ));
+    let mut panes = vec![];
 
-    let num_panes = panes.len();
+    let bottom_panes = split_even(
+        TotalPanes(2),
+        visually_last_row.clone(),
+        SplitDirection::Right,
+    );
 
-    // Column panes already created, so remove them from the total count.
-    let total_panes_to_gen = total_panes.0 - num_panes;
+    if let Some(mut created_panes) = bottom_panes {
+        panes.append(&mut created_panes);
+    };
+
+    // Remove row panes from count since they've already been generated.
+    let total_panes_to_gen = total_panes.0 - row_count;
 
     if total_panes_to_gen == 0 {
         return Some(panes);
     }
 
-    let h_panes = split_even(
-        TotalPanes(total_panes_to_gen + 1),
+    let top_panes = split_even(
+        TotalPanes(total_panes_to_gen),
         visually_first_row.clone(),
         SplitDirection::Right,
     );
 
-    if let Some(mut created_panes) = h_panes {
+    if let Some(mut created_panes) = top_panes {
         panes.append(&mut created_panes);
     }
 
