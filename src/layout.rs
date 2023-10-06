@@ -205,10 +205,13 @@ fn three_columns(total_panes: TotalPanes, starting_pane: Pane) -> Option<Vec<Pan
 }
 
 fn double_main_vertical(total_panes: TotalPanes, starting_pane: Pane) -> Option<Vec<Pane>> {
-    let cols =
-        split_even(TotalPanes(3), starting_pane.clone(), SplitDirection::Right).unwrap_or(vec![]);
-    // TODO: Not use clone; this might be causing the double id issue
-    let mut panes = cols.clone();
+    let num_cols = 3;
+    let cols = split_even(
+        TotalPanes(num_cols),
+        starting_pane.clone(),
+        SplitDirection::Right,
+    )
+    .unwrap_or(vec![]);
 
     // HACK: Wezterm's split rules are a little finnicky.
     // When generating the columns, the last column gets put
@@ -217,18 +220,23 @@ fn double_main_vertical(total_panes: TotalPanes, starting_pane: Pane) -> Option<
     // To combat this, we manually move the last tab back one in the vector.
 
     // The columns should exist. It's safe to panic otherwise.
+    let visually_first_col = cols.get(0).unwrap();
+    let visually_middle_col = cols.get(2).unwrap();
     let visually_last_col = cols.get(1).unwrap();
 
-    let num_cols = cols.len();
-    // Column panes already created, so remove them from the total count.
-    let total_panes_to_gen = total_panes.0 - num_cols;
+    // visually_last_col will be included in `v_panes`, so we don't include
+    // it in the initialization of `panes`.
+    let mut panes = vec![visually_first_col.clone(), visually_middle_col.clone()];
+
+    // Remove panes that won't have children from calculation
+    let total_panes_to_gen = total_panes.0 - panes.len();
 
     if total_panes_to_gen == 0 {
         return Some(panes);
     }
 
     let v_panes = split_even(
-        TotalPanes(total_panes_to_gen + 1),
+        TotalPanes(total_panes_to_gen),
         visually_last_col.clone(),
         SplitDirection::Bottom,
     );
