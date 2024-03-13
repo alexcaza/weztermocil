@@ -1,0 +1,5 @@
+# toolchain.toml
+[toolchain]
+channel = "stable"
+components = [ "rustfmt", "rust-src", "clippy" ]
+profile = "default"
