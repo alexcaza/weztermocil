@@ -44,10 +44,12 @@ impl CLI {
             commands.push("--top-level");
         }
 
+        // println!("cmds: {:?}", commands);
         let output = cmd.args(commands).output().expect("Failed to create pane");
         // TODO: Handle non-zero case from call to `.output()` properly
         // currently it's being swallowed.
         let pane_id = from_utf8(&output.stdout).expect("Failed to convert from utf8");
+        // println!("output: {:?}", output);
 
         Ok(String::from(strip_trailing_newline(pane_id)))
     }

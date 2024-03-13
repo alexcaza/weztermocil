@@ -123,7 +123,6 @@ fn main() {
 
             for (i, pane) in all_panes.iter().enumerate() {
                 let command = commands.get(i).expect("Pane option should exist!");
-                println!("i: {}, pane: {:?}", i, pane);
                 pane.run_command(command.clone());
             }
         }
