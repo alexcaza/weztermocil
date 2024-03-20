@@ -1,4 +1,4 @@
-use std::fs;
+use std::{env, fs, path::Path};
 
 use clap::Parser;
 use serde::{Deserialize, Serialize};
@@ -83,8 +83,16 @@ fn main() {
 
     if let Some(global_layout) = args.global_layout {
         println!("{}", global_layout);
-        layout_yml = fs::read_to_string(format!("~/.weztermocil/{}", global_layout))
-            .expect("File should exist!");
+        let home = env::var("HOME").unwrap();
+        let _path = format!("{}/.weztermocil/{}", home, global_layout);
+        let path = Path::new(&_path);
+        match fs::read_to_string(path) {
+            // TODO: Better error handling/messaging
+            Err(err) => println!("Failed with {}", err),
+            Ok(res) => {
+                layout_yml = res;
+            }
+        };
     }
 
     if let Some(layout) = args.layout {
@@ -93,7 +101,8 @@ fn main() {
     }
 
     if layout_yml.is_empty() {
-        layout_yml = fs::read_to_string("./weztermocil.yml").expect("File should exist!");
+        layout_yml =
+            fs::read_to_string("./weztermocil.yml").expect("No local weztermocil.yml file to use.");
     }
 
     let yaml_config: YAMLConfig = serde_yaml::from_str(&layout_yml).unwrap();
