@@ -143,31 +143,4 @@ fn main() {
             }
         }
     }
-
-    // Check if weztermocil.yml file exists in current directory.
-    // Use that if it does and no layout or global_layout exists.
-
-    // let cwd_test = Some("/Users/alexcaza/Documents/programming/personal/weztermocil");
-    //
-    // let pane = Pane::new(cwd_test);
-    // println!("{:?}", pane);
-
-    // let new_pane = pane.split(Some(SplitDirection::Top), None);
-    // println!("{:?}", new_pane);
-    //
-    // let child_pane = new_pane.split(Some(SplitDirection::Bottom), None);
-    // println!("{:?}", child_pane);
-    //
-    // let _ = child_pane.set_tab_title(String::from("Test"));
-    //
-    // child_pane.run_command(String::from("cargo help"));
-
-    // Layout::EvenHorizontal.create(TotalPanes(3), pane);
-    // Layout::EvenVertical.create(TotalPanes(7), pane);
-    // Layout::MainVertical.create(TotalPanes(5), pane);
-    // Layout::MainVerticalFlipped.create(TotalPanes(3), pane);
-    // Layout::Tiled.create(TotalPanes(5), pane);
-    // Layout::ThreeColumns.create(TotalPanes(3), pane);
-    // Layout::DoubleMainVertical.create(TotalPanes(7), pane);
-    // Layout::DoubleMainHorizontal.create(TotalPanes(8), pane);
 }
