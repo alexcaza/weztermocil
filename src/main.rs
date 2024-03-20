@@ -118,7 +118,13 @@ fn main() {
             // TODO: handle --here case
             // Though, I don't know how it --here works with multiple windows...
             let main_pane = Pane::new(None);
-            // let total_panes = TotalPanes(panes.len());
+
+            if let Some(tab_name) = window.name {
+                main_pane
+                    .set_tab_title(tab_name)
+                    .expect("Window name should've been set. Something bad happened here.");
+            }
+
             let commands = match panes {
                 PaneConfig::Commands(commands) => commands,
                 // TODO: Fix Hash enum member.
