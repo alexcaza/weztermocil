@@ -17,8 +17,9 @@ struct PaneConfigOptions {
 #[serde(untagged)]
 enum PaneConfig {
     Commands(Vec<String>),
-    Hash(PaneConfigOptions), // commands: Vec<String>,
-                             // focus: bool,
+    Hash(PaneConfigOptions),
+    // commands: Vec<String>,
+    // focus: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
