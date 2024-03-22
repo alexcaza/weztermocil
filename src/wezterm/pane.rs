@@ -19,7 +19,7 @@ pub struct Pane {
 }
 
 impl Pane {
-    pub fn new(cwd: Option<&str>) -> Pane {
+    pub fn new(cwd: &Option<String>) -> Pane {
         let id = match CLI::spawn(cwd) {
             Ok(id) => id,
             Err(e) => panic!("Failed to split pane: {}", e),

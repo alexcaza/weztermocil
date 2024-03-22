@@ -113,11 +113,8 @@ fn main() {
         for window in windows {
             // TODO: Extract to fn
             let layout = layout_string_to_enum(window.layout.unwrap_or(String::from("tiled")));
-            println!("{:?}", window.panes);
             let panes = window.panes.unwrap_or(PaneConfig::Commands(vec![]));
-            // TODO: handle --here case
-            // Though, I don't know how it --here works with multiple windows...
-            let main_pane = Pane::new(None);
+            let main_pane = Pane::new(&window.root);
 
             if let Some(tab_name) = window.name {
                 main_pane
