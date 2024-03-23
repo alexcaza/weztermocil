@@ -71,12 +71,30 @@ fn layout_string_to_enum(name: String) -> Layout {
     }
 }
 
+fn expand_path(raw_path: String) -> String {
+    // TODO: Expand the raw path to an absolute path from `~` or relative.
+    return String::from("TEST");
+}
+
 fn list_layouts() {
     let dir = tilde("~/.weztermocil").to_string();
     let paths = fs::read_dir(dir).unwrap();
     for path in paths {
         println!("{}", path.unwrap().file_name().into_string().unwrap());
     }
+}
+
+fn show_layout_contents(path: String) {
+    // TODO: Implement showing layout
+}
+
+fn edit_layout(path: String) {
+    // TODO: Implement opening file with `$EDITOR`;
+}
+
+fn use_layout(path: String) -> YAMLConfig {
+    let layout_yml = fs::read_to_string(path).expect("File should exist!");
+    serde_yaml::from_str(&layout_yml).unwrap()
 }
 
 fn main() {
@@ -94,37 +112,41 @@ fn main() {
         return;
     }
 
-    // TODO:: Clean this up. There's definitely a better way to handle the layout
-    // checking
-    let mut layout_yml = String::from("");
+    let mut layout_path: String = String::from("");
 
     if let Some(global_layout) = args.global_layout {
         let home = env::var("HOME").unwrap();
-        let _path = format!("{}/.weztermocil/{}", home, global_layout);
-        let path = Path::new(&_path);
-        match fs::read_to_string(path) {
-            // TODO: Better error handling/messaging
-            Err(err) => println!("Failed with {}", err),
-            Ok(res) => {
-                layout_yml = res;
-            }
-        };
+        let path = format!("{}/.weztermocil/{}", home, global_layout);
+        layout_path = path;
     }
 
     if let Some(layout) = args.layout {
         let path = shellexpand::env(layout.as_str()).unwrap().to_string();
-        layout_yml = fs::read_to_string(path).expect("File should exist!");
+        layout_path = path.clone();
     }
 
-    if layout_yml.is_empty() {
-        layout_yml =
-            fs::read_to_string("./weztermocil.yml").expect("No local weztermocil.yml file to use.");
+    if layout_path.is_empty() {
+        layout_path = String::from("./weztermocil.yml");
     }
 
-    let yaml_config: YAMLConfig = serde_yaml::from_str(&layout_yml).unwrap();
+    let yaml_config: YAMLConfig = use_layout(layout_path);
 
-    // println!("yaml_config: {:?}", yaml_config);
+    let (focus_tuple, all_panes) = build_panes(yaml_config);
 
+    let focus_pane = all_panes
+        .get(focus_tuple[0])
+        .expect("Window to focus should exist!")
+        .get(focus_tuple[1])
+        .expect("Pane to focus should exist!");
+
+    match focus_pane.focus() {
+        Ok(res) => res,
+        Err(error) => println!("{:?}", error),
+    }
+}
+
+// TODO: Conver return types into newtypes (FocusTuple, WindowPaneTuple)
+fn build_panes(yaml_config: YAMLConfig) -> (Vec<usize>, Vec<Vec<Pane>>) {
     let mut focus_tuple = vec![0, 0];
     let mut all_panes = vec![];
     let mut focus_list = vec![];
@@ -186,15 +208,5 @@ fn main() {
             }
         }
     }
-
-    let focus_pane = all_panes
-        .get(focus_tuple[0])
-        .expect("Window to focus should exist!")
-        .get(focus_tuple[1])
-        .expect("Pane to focus should exist!");
-
-    match focus_pane.focus() {
-        Ok(res) => res,
-        Err(error) => println!("{:?}", error),
-    }
+    (focus_tuple, all_panes)
 }
