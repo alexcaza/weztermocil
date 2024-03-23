@@ -175,8 +175,12 @@ fn main() {
     }
 
     if let Some(layout) = args.layout {
-        let path = shellexpand::env(layout.as_str()).unwrap().to_string();
-        layout_path = path.clone();
+        let p = fs::canonicalize(layout.as_str())
+            .unwrap()
+            .into_os_string()
+            .into_string()
+            .unwrap();
+        layout_path = p;
     }
 
     if layout_path.is_empty() {
