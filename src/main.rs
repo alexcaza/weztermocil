@@ -1,4 +1,7 @@
-use std::{env, error::Error, fs, path::Path, process::Command};
+use std::{
+    env, fs,
+    process::{self, Command},
+};
 
 use clap::Parser;
 use serde::{Deserialize, Serialize};
@@ -110,13 +113,11 @@ fn get_path_for_layout_file(layout_name: String) -> Result<String, String> {
 }
 
 fn show_layout_contents(path: String) {
-    // TODO: Implement showing layout
     let contents = fs::read_to_string(path).unwrap();
     println!("{}", contents);
 }
 
 fn edit_layout(path: String) -> () {
-    // TODO: Implement opening file with `$EDITOR`;
     let editor = env::var("EDITOR").unwrap();
     Command::new(editor)
         .arg(path.as_str())
@@ -125,8 +126,13 @@ fn edit_layout(path: String) -> () {
 }
 
 fn use_layout(path: String) -> YAMLConfig {
-    let layout_yml = fs::read_to_string(path).expect("File should exist!");
-    serde_yaml::from_str(&layout_yml).unwrap()
+    match fs::read_to_string(path.clone()) {
+        Ok(file) => serde_yaml::from_str(&file).unwrap(),
+        Err(_) => {
+            println!("{} not found!", path);
+            process::exit(1);
+        }
+    }
 }
 
 fn main() {
@@ -144,7 +150,10 @@ fn main() {
                 println!("Found layout at path: {}", p);
                 show_layout_contents(p);
             }
-            Err(error) => println!("{}", error),
+            Err(error) => {
+                println!("{}", error);
+                process::exit(1);
+            }
         }
         return;
     }
@@ -157,7 +166,10 @@ fn main() {
                 println!("Opening with '{}'...", env::var("EDITOR").unwrap());
                 edit_layout(p);
             }
-            Err(error) => println!("{}", error),
+            Err(error) => {
+                println!("{}", error);
+                process::exit(1);
+            }
         }
         return;
     }
@@ -170,16 +182,30 @@ fn main() {
             Ok(p) => {
                 layout_path = p;
             }
-            Err(error) => println!("{}", error),
+            Err(error) => {
+                println!("{}", error);
+                process::exit(1);
+            }
         }
     }
 
     if let Some(layout) = args.layout {
-        let p = fs::canonicalize(layout.as_str())
-            .unwrap()
-            .into_os_string()
-            .into_string()
-            .unwrap();
+        let f = match fs::canonicalize(layout.as_str()) {
+            Ok(path) => path.into_os_string().into_string(),
+            Err(_) => {
+                println!("Couldn't find file at path: {}. Does it exist?", layout);
+                process::exit(1);
+            }
+        };
+
+        let p = match f {
+            Ok(path) => path,
+            Err(_) => {
+                println!("Couldn't find file at path: {}. Does it exist?", layout);
+                process::exit(1);
+            }
+        };
+
         layout_path = p;
     }
 
@@ -203,7 +229,7 @@ fn main() {
     }
 }
 
-// TODO: Conver return types into newtypes (FocusTuple, WindowPaneTuple)
+// TODO: Convert return types into newtypes (FocusTuple, WindowPaneTuple)
 fn build_panes(yaml_config: YAMLConfig) -> (Vec<usize>, Vec<Vec<Pane>>) {
     let mut focus_tuple = vec![0, 0];
     let mut all_panes = vec![];
