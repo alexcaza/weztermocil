@@ -1,4 +1,4 @@
-use std::{env, fs, path::Path};
+use std::{env, error::Error, fs, path::Path, process::Command};
 
 use clap::Parser;
 use serde::{Deserialize, Serialize};
@@ -84,12 +84,49 @@ fn list_layouts() {
     }
 }
 
-fn show_layout_contents(path: String) {
-    // TODO: Implement showing layout
+fn get_path_for_layout_file(layout_name: String) -> Result<String, String> {
+    let global_path = tilde("~/.weztermocil").to_string();
+    let current_dir = std::env::current_dir()
+        .unwrap()
+        .into_os_string()
+        .into_string()
+        .unwrap();
+    let current_dir_fp = format!("{}/{}", current_dir, layout_name);
+    let local_layout_dir_fp = format!("{}/.weztermocil/{}", current_dir, layout_name);
+    let global_layout_fp = format!("{}/{}", global_path, layout_name);
+
+    let in_current_dir = fs::File::open(current_dir_fp.clone());
+    let in_local_layout_dir = fs::File::open(local_layout_dir_fp.clone());
+    let in_global_layout = fs::File::open(global_layout_fp.clone());
+
+    if let Ok(_) = in_current_dir {
+        return Ok(current_dir_fp);
+    }
+
+    if let Ok(_) = in_local_layout_dir {
+        return Ok(local_layout_dir_fp);
+    }
+
+    if let Ok(_) = in_global_layout {
+        return Ok(global_layout_fp);
+    }
+
+    return Err(String::from("Couldn't find layout"));
 }
 
-fn edit_layout(path: String) {
+fn show_layout_contents(path: String) {
+    // TODO: Implement showing layout
+    let contents = fs::read_to_string(path).unwrap();
+    println!("{}", contents);
+}
+
+fn edit_layout(path: String) -> () {
     // TODO: Implement opening file with `$EDITOR`;
+    let editor = env::var("EDITOR").unwrap();
+    Command::new(editor)
+        .arg(path.as_str())
+        .status()
+        .expect("Editor should exist");
 }
 
 fn use_layout(path: String) -> YAMLConfig {
@@ -109,6 +146,31 @@ fn main() {
 
     if args.list {
         list_layouts();
+        return;
+    }
+
+    if let Some(path) = args.show {
+        let path = get_path_for_layout_file(path);
+        match path {
+            Ok(p) => {
+                println!("Found layout at path: {}", p);
+                show_layout_contents(p);
+            }
+            Err(error) => println!("{}", error),
+        }
+        return;
+    }
+
+    if let Some(path) = args.edit {
+        let path = get_path_for_layout_file(path);
+        match path {
+            Ok(p) => {
+                println!("Found layout at path: {}", p);
+                println!("Opening with '{}'...", env::var("EDITOR").unwrap());
+                edit_layout(p);
+            }
+            Err(error) => println!("{}", error),
+        }
         return;
     }
 
