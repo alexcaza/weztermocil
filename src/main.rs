@@ -4,7 +4,7 @@ use clap::Parser;
 use serde::{Deserialize, Serialize};
 use weztermocil::{
     layout::{Layout, TotalPanes},
-    wezterm::pane::{Pane, SplitDirection},
+    wezterm::pane::Pane,
 };
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -17,9 +17,7 @@ struct PaneConfigOptions {
 #[serde(untagged)]
 enum PaneConfig {
     Commands(Vec<String>),
-    Hash(PaneConfigOptions),
-    // commands: Vec<String>,
-    // focus: bool,
+    Hash(Vec<PaneConfigOptions>),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -107,11 +105,10 @@ fn main() {
 
     let yaml_config: YAMLConfig = serde_yaml::from_str(&layout_yml).unwrap();
 
-    println!("yaml_config: {:?}", yaml_config);
+    // println!("yaml_config: {:?}", yaml_config);
 
     if let Some(windows) = yaml_config.windows {
         for window in windows {
-            // TODO: Extract to fn
             let layout = layout_string_to_enum(window.layout.unwrap_or(String::from("tiled")));
             let panes = window.panes.unwrap_or(PaneConfig::Commands(vec![]));
             let main_pane = Pane::new(&window.root);
@@ -122,21 +119,31 @@ fn main() {
                     .expect("Window name should've been set. Something bad happened here.");
             }
 
-            let commands = match panes {
-                PaneConfig::Commands(commands) => commands,
-                // TODO: Fix Hash enum member.
-                PaneConfig::Hash(panes) => panes.commands.unwrap_or(vec![]),
+            let mut commands = vec![];
+            match panes {
+                PaneConfig::Commands(_commands) => {
+                    for c in _commands {
+                        commands.push(vec![c]);
+                    }
+                }
+                PaneConfig::Hash(config) => {
+                    for c in config {
+                        if let Some(cmds) = c.commands {
+                            commands.push(cmds);
+                        }
+                    }
+                }
             };
 
             let total_panes = TotalPanes(commands.len());
 
-            // TODO: Sometimes same pane is being returned from create function.
-            // So we get two commands running in the same pane unintentionally.
             let all_panes = layout.create(total_panes, main_pane).unwrap_or(vec![]);
 
             for (i, pane) in all_panes.iter().enumerate() {
-                let command = commands.get(i).expect("Pane option should exist!");
-                pane.run_command(command.clone());
+                let command_group = commands.get(i).expect("Pane option should exist!");
+                for cmd in command_group {
+                    pane.run_command(cmd.clone());
+                }
             }
         }
     }
