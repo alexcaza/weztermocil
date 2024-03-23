@@ -71,11 +71,6 @@ fn layout_string_to_enum(name: String) -> Layout {
     }
 }
 
-fn expand_path(raw_path: String) -> String {
-    // TODO: Expand the raw path to an absolute path from `~` or relative.
-    return String::from("TEST");
-}
-
 fn list_layouts() {
     let dir = tilde("~/.weztermocil").to_string();
     let paths = fs::read_dir(dir).unwrap();
@@ -135,13 +130,6 @@ fn use_layout(path: String) -> YAMLConfig {
 }
 
 fn main() {
-    // Job of this file:
-    // 1. Read the yaml file given
-    // 2. Kick off the logic based on the config in the file
-    // 3. Create the panes and split them appropriately
-    //
-    // To get current pane id, check WEZTERM_PANE env var
-    // it's set by wezterm as the program env var
     let args = Args::parse();
 
     if args.list {
@@ -177,9 +165,13 @@ fn main() {
     let mut layout_path: String = String::from("");
 
     if let Some(global_layout) = args.global_layout {
-        let home = env::var("HOME").unwrap();
-        let path = format!("{}/.weztermocil/{}", home, global_layout);
-        layout_path = path;
+        let path = get_path_for_layout_file(global_layout);
+        match path {
+            Ok(p) => {
+                layout_path = p;
+            }
+            Err(error) => println!("{}", error),
+        }
     }
 
     if let Some(layout) = args.layout {
