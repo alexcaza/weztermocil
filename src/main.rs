@@ -2,6 +2,7 @@ use std::{env, fs, path::Path};
 
 use clap::Parser;
 use serde::{Deserialize, Serialize};
+use shellexpand::tilde;
 use weztermocil::{
     layout::{Layout, TotalPanes},
     wezterm::pane::Pane,
@@ -46,12 +47,14 @@ struct Args {
     global_layout: Option<String>,
     #[arg(long)]
     layout: Option<String>,
-    #[arg(long)]
+    #[arg(long, action)]
     here: Option<bool>,
     #[arg(long)]
-    edit: Option<bool>,
+    edit: Option<String>,
     #[arg(long)]
-    show: Option<bool>,
+    show: Option<String>,
+    #[arg(long, action)]
+    list: bool,
 }
 
 fn layout_string_to_enum(name: String) -> Layout {
@@ -68,6 +71,14 @@ fn layout_string_to_enum(name: String) -> Layout {
     }
 }
 
+fn list_layouts() {
+    let dir = tilde("~/.weztermocil").to_string();
+    let paths = fs::read_dir(dir).unwrap();
+    for path in paths {
+        println!("{}", path.unwrap().file_name().into_string().unwrap());
+    }
+}
+
 fn main() {
     // Job of this file:
     // 1. Read the yaml file given
@@ -77,12 +88,17 @@ fn main() {
     // To get current pane id, check WEZTERM_PANE env var
     // it's set by wezterm as the program env var
     let args = Args::parse();
+
+    if args.list {
+        list_layouts();
+        return;
+    }
+
     // TODO:: Clean this up. There's definitely a better way to handle the layout
     // checking
     let mut layout_yml = String::from("");
 
     if let Some(global_layout) = args.global_layout {
-        println!("{}", global_layout);
         let home = env::var("HOME").unwrap();
         let _path = format!("{}/.weztermocil/{}", home, global_layout);
         let path = Path::new(&_path);
@@ -96,8 +112,8 @@ fn main() {
     }
 
     if let Some(layout) = args.layout {
-        println!("{}", layout);
-        layout_yml = fs::read_to_string(layout).expect("File should exist!");
+        let path = shellexpand::env(layout.as_str()).unwrap().to_string();
+        layout_yml = fs::read_to_string(path).expect("File should exist!");
     }
 
     if layout_yml.is_empty() {
@@ -156,8 +172,6 @@ fn main() {
 
             all_panes.push(layout.create(total_panes, main_pane).unwrap_or(vec![]));
 
-            // TODO: Handle pane/window focus here
-            // Need to retain cmd/cmd_group + pane id for focus
             for (i, pane) in all_panes[window_index].iter().enumerate() {
                 let command_group = commands.get(i).expect("Pane option should exist!");
                 let should_focus = focus_list[window_index].get(i).expect("Focus should exist");
