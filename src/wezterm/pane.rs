@@ -58,6 +58,10 @@ impl Pane {
         CLI::set_tab_title(self.id.clone(), title.clone())
     }
 
+    pub fn focus(&self) -> Result<(), Box<dyn Error>> {
+        CLI::focus(self.id.clone())
+    }
+
     pub fn run_command(&self, command: String) {
         CLI::run_command(self.id.clone(), command.clone())
     }

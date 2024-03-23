@@ -87,6 +87,14 @@ impl CLI {
         Ok(())
     }
 
+    pub fn focus(pane_id: String) -> Result<(), Box<dyn Error>> {
+        CLI::new()
+            .args(["cli", "activate-pane", "--pane-id", pane_id.as_str()])
+            .output()?;
+
+        Ok(())
+    }
+
     pub fn run_command(pane_id: String, command: String) -> () {
         let cmd = Command::new("echo")
             .arg(command.as_str())
