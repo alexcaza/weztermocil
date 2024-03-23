@@ -2,7 +2,7 @@ use std::fmt;
 
 use crate::wezterm::pane::{Pane, SplitDirection};
 
-#[derive(PartialEq, Clone, Copy)]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub struct TotalPanes(pub usize);
 
 impl fmt::Display for TotalPanes {
@@ -168,6 +168,13 @@ fn three_columns(total_panes: TotalPanes, starting_pane: Pane) -> Option<Vec<Pan
     cols.push(last_col);
     cols.push(middle_col);
 
+    // If we get lte 3 panes as input, return the colunms.
+    // This can happen if a user wants < 3 commands to be run,
+    // but still have a third column ready for other manual activity.
+    if total_panes.0 <= 3 {
+        return Some(cols);
+    }
+
     let num_cols = cols.len();
     // Column panes already created, so remove them from the total count.
     let total_panes_to_gen = total_panes.0 - num_cols;
@@ -175,11 +182,15 @@ fn three_columns(total_panes: TotalPanes, starting_pane: Pane) -> Option<Vec<Pan
     let mut panes_left = total_panes_to_gen;
     let mut panes = vec![];
 
-    for pane in cols.iter() {
+    for (i, pane) in cols.iter().enumerate() {
         // When we've run out of panes, stop iterating.
         // This accounts for scenarios where we get less
         // rows than total columns, or an odd number of rows.
         if panes_left == 0 {
+            // Push the remaining columns to make sure
+            // they're included.
+            let mut remaining_cols = cols[i..].to_vec();
+            panes.append(&mut remaining_cols);
             break;
         }
 
