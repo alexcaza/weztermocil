@@ -41,7 +41,6 @@ $ weztermocil [options] [layout-name]
 
 | Key       | Description
 |-----------|----------------------------
-| `name`    | The name to give to the main GUI window
 | `windows` | An `Array` of windows/tabs
 
 ### Windows
