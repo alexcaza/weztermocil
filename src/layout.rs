@@ -64,7 +64,7 @@ fn split_even(
 
     // If there's one other pane to create, split parent once at 50% and return
     if remaining_panes_count == 1 {
-        let pane = starting_pane.split(Some(direction), &Some(String::from("50")), None, false);
+        let pane = starting_pane.split(&direction, Some("50"), None, false);
         panes.push(pane);
         return Some(panes);
     }
@@ -73,7 +73,7 @@ fn split_even(
         let pane_perc = ((1.0 / (total_panes.0 - p) as f32) * 100.0)
             .round()
             .to_string();
-        let pane = starting_pane.split(Some(direction), &Some(pane_perc), None, false);
+        let pane = starting_pane.split(&direction, Some(&pane_perc), None, false);
         panes.push(pane);
     }
 
@@ -85,7 +85,7 @@ fn main_splits(
     starting_pane: Pane,
     direction: SplitDirection,
 ) -> Option<Vec<Pane>> {
-    let main_pane = starting_pane.split(Some(direction), &Some(String::from("50")), None, false);
+    let main_pane = starting_pane.split(&direction, Some("50"), None, false);
 
     match split_even(
         TotalPanes(total_panes.0 - 1),
@@ -121,12 +121,7 @@ fn tiled(total_panes: TotalPanes, starting_pane: Pane) -> Option<Vec<Pane>> {
     let total_panes_even = total_panes.0 % 2 == 0;
     let mut all_panes = vec![];
     let left_pane = starting_pane;
-    let right_pane = left_pane.split(
-        Some(SplitDirection::Right),
-        &Some(String::from("50")),
-        None,
-        false,
-    );
+    let right_pane = left_pane.split(&SplitDirection::Right, Some("50"), None, false);
 
     if total_panes.0 == 2 {
         all_panes.push(left_pane);
@@ -141,7 +136,7 @@ fn tiled(total_panes: TotalPanes, starting_pane: Pane) -> Option<Vec<Pane>> {
         per_side = TotalPanes((total_panes.0 - 1) / 2);
 
         // If panes are odd, create a bottom pane at the top level
-        let bottom_pane = left_pane.split(Some(SplitDirection::Bottom), &None, None, true);
+        let bottom_pane = left_pane.split(&SplitDirection::Bottom, None, None, true);
         all_panes.push(bottom_pane);
     }
 

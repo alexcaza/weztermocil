@@ -17,27 +17,25 @@ impl CLI {
     }
 
     pub fn split_pane(
-        pane_id: String,
-        direction: &Option<SplitDirection>,
-        percentage: &Option<String>,
+        pane_id: &str,
+        direction: &SplitDirection,
+        percentage: Option<&str>,
         top_level: bool,
     ) -> Result<String, Box<dyn Error>> {
         let mut cmd = CLI::new();
-        let mut commands = vec!["cli", "split-pane", "--pane-id", pane_id.as_str()];
+        let mut commands = vec!["cli", "split-pane", "--pane-id", pane_id];
 
-        if let Some(pane_dir) = &direction {
-            let dir = match pane_dir {
-                SplitDirection::Right => "--right",
-                SplitDirection::Left => "--left",
-                SplitDirection::Top => "--top",
-                SplitDirection::Bottom => "--bottom",
-            };
-            commands.push(dir);
+        let dir = match direction {
+            SplitDirection::Right => "--right",
+            SplitDirection::Left => "--left",
+            SplitDirection::Top => "--top",
+            SplitDirection::Bottom => "--bottom",
         };
+        commands.push(dir);
 
         if let Some(p) = percentage {
             commands.push("--percent");
-            commands.push(p.as_str());
+            commands.push(p);
         }
 
         if top_level {
