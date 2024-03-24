@@ -4,19 +4,18 @@ windows:
     layout: 3_columns
     panes:
       - commands:
-        - echo "pane 1a"
-        - echo "pane 1b"
+        - echo $WEZTERM_PANE
       - commands:
-        - echo "pane 2"
+        - echo $WEZTERM_PANE
       - commands:
-        - echo "pane 3"
+        - echo $WEZTERM_PANE
       - commands:
-        - echo "pane 4"
+        - echo $WEZTERM_PANE
       - commands:
-        - echo "pane 5"
+        - echo $WEZTERM_PANE
   - name: tiled
     root: ~
     layout: tiled
     panes:
-      - echo "pane 4"
-      - echo "pane 5"
+      - echo $WEZTERM_PANE
+      - echo $WEZTERM_PANE
