@@ -54,14 +54,14 @@ impl CLI {
         Ok(String::from(strip_trailing_newline(pane_id)))
     }
 
-    pub fn spawn(cwd: &Option<String>) -> Result<String, Box<dyn Error>> {
+    pub fn spawn(cwd: Option<&str>) -> Result<String, Box<dyn Error>> {
         let mut cmd = CLI::new();
         let mut commands = vec!["cli", "spawn"];
 
         match cwd {
             Some(dir) => {
                 commands.push("--cwd");
-                commands.push(dir.as_str());
+                commands.push(dir);
             }
             None => (),
         };
@@ -72,44 +72,32 @@ impl CLI {
         Ok(String::from(strip_trailing_newline(tab_id)))
     }
 
-    pub fn set_tab_title(pane_id: String, title: String) -> Result<(), Box<dyn Error>> {
+    pub fn set_tab_title(pane_id: &str, title: &str) -> Result<(), Box<dyn Error>> {
         let mut cmd = CLI::new();
-        let commands = vec![
-            "cli",
-            "set-tab-title",
-            title.as_str(),
-            "--pane-id",
-            pane_id.as_str(),
-        ];
+        let commands = vec!["cli", "set-tab-title", title, "--pane-id", pane_id];
 
         cmd.args(commands).output()?;
 
         Ok(())
     }
 
-    pub fn focus(pane_id: String) -> Result<(), Box<dyn Error>> {
+    pub fn focus(pane_id: &str) -> Result<(), Box<dyn Error>> {
         CLI::new()
-            .args(["cli", "activate-pane", "--pane-id", pane_id.as_str()])
+            .args(["cli", "activate-pane", "--pane-id", pane_id])
             .output()?;
 
         Ok(())
     }
 
-    pub fn run_command(pane_id: String, command: String) -> () {
+    pub fn run_command(pane_id: &str, command: &str) -> () {
         let cmd = Command::new("echo")
-            .arg(command.as_str())
+            .arg(command)
             .stdout(Stdio::piped())
             .spawn()
             .unwrap();
 
         CLI::new()
-            .args([
-                "cli",
-                "send-text",
-                "--pane-id",
-                pane_id.as_str(),
-                "--no-paste",
-            ])
+            .args(["cli", "send-text", "--pane-id", pane_id, "--no-paste"])
             .stdin(Stdio::from(cmd.stdout.unwrap()))
             .spawn()
             .expect("Failed to send command");

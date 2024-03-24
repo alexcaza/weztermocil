@@ -19,7 +19,7 @@ pub struct Pane {
 }
 
 impl Pane {
-    pub fn new(cwd: &Option<String>) -> Pane {
+    pub fn new(cwd: Option<&str>) -> Pane {
         let id = match CLI::spawn(cwd) {
             Ok(id) => id,
             Err(e) => panic!("Failed to split pane: {}", e),
@@ -54,15 +54,15 @@ impl Pane {
         }
     }
 
-    pub fn set_tab_title(&self, title: String) -> Result<(), Box<dyn Error>> {
-        CLI::set_tab_title(self.id.clone(), title.clone())
+    pub fn set_tab_title(&self, title: &str) -> Result<(), Box<dyn Error>> {
+        CLI::set_tab_title(&self.id, title)
     }
 
     pub fn focus(&self) -> Result<(), Box<dyn Error>> {
-        CLI::focus(self.id.clone())
+        CLI::focus(&self.id)
     }
 
-    pub fn run_command(&self, command: String) {
-        CLI::run_command(self.id.clone(), command.clone())
+    pub fn run_command(&self, command: &str) {
+        CLI::run_command(&self.id, command)
     }
 }

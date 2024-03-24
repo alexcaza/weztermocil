@@ -27,7 +27,7 @@ enum PaneConfig {
 
 #[derive(Serialize, Deserialize, Debug)]
 struct WindowConfig {
-    name: Option<String>, // unsupported currently
+    name: Option<String>,
     root: Option<String>,
     layout: Option<String>,
     panes: Option<PaneConfig>,
@@ -60,8 +60,8 @@ struct Args {
     list: bool,
 }
 
-fn layout_string_to_enum(name: String) -> Layout {
-    match name.as_str() {
+fn layout_string_to_enum(name: &str) -> Layout {
+    match name {
         "tiled" => Layout::Tiled,
         "even-horizontal" => Layout::EvenHorizontal,
         "main-vertical" => Layout::MainVertical,
@@ -93,9 +93,9 @@ fn get_path_for_layout_file(layout_name: String) -> Result<String, String> {
     let local_layout_dir_fp = format!("{}/.weztermocil/{}", current_dir, layout_name);
     let global_layout_fp = format!("{}/{}", global_path, layout_name);
 
-    let in_current_dir = fs::File::open(current_dir_fp.clone());
-    let in_local_layout_dir = fs::File::open(local_layout_dir_fp.clone());
-    let in_global_layout = fs::File::open(global_layout_fp.clone());
+    let in_current_dir = fs::File::open(&current_dir_fp);
+    let in_local_layout_dir = fs::File::open(&local_layout_dir_fp);
+    let in_global_layout = fs::File::open(&global_layout_fp);
 
     if let Ok(_) = in_current_dir {
         return Ok(current_dir_fp);
@@ -125,8 +125,8 @@ fn edit_layout(path: String) -> () {
         .expect("Editor should exist");
 }
 
-fn use_layout(path: String) -> YAMLConfig {
-    match fs::read_to_string(path.clone()) {
+fn use_layout(path: &str) -> YAMLConfig {
+    match fs::read_to_string(path) {
         Ok(file) => serde_yaml::from_str(&file).unwrap(),
         Err(_) => {
             println!("{} not found!", path);
@@ -213,7 +213,7 @@ fn main() {
         layout_path = String::from("./weztermocil.yml");
     }
 
-    let yaml_config: YAMLConfig = use_layout(layout_path);
+    let yaml_config: YAMLConfig = use_layout(&layout_path);
 
     let (focus_tuple, all_panes) = build_panes(yaml_config);
 
@@ -244,13 +244,16 @@ fn build_panes(yaml_config: YAMLConfig) -> (Vec<usize>, Vec<Vec<Pane>>) {
             }
 
             let layout =
-                layout_string_to_enum(window.layout.clone().unwrap_or(String::from("tiled")));
+                layout_string_to_enum(&window.layout.clone().unwrap_or(String::from("tiled")));
             let panes = window.panes.clone().unwrap_or(PaneConfig::Commands(vec![]));
-            let main_pane = Pane::new(&window.root);
+            let main_pane = match window.root.clone() {
+                Some(cwd) => Pane::new(Some(&cwd)),
+                None => Pane::new(None),
+            };
 
             if let Some(tab_name) = window.name.clone() {
                 main_pane
-                    .set_tab_title(tab_name)
+                    .set_tab_title(&tab_name)
                     .expect("Window name should've been set. Something bad happened here.");
             }
 
@@ -287,7 +290,7 @@ fn build_panes(yaml_config: YAMLConfig) -> (Vec<usize>, Vec<Vec<Pane>>) {
                 }
 
                 for cmd in command_group {
-                    pane.run_command(cmd.clone());
+                    pane.run_command(cmd);
                 }
             }
         }
