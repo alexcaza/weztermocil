@@ -60,6 +60,11 @@ struct Args {
     list: bool,
 }
 
+type PaneIndex = usize;
+type WindowIndex = usize;
+struct FocusTuple(WindowIndex, PaneIndex);
+struct WindowPanes(Vec<Vec<Pane>>);
+
 fn layout_string_to_enum(name: &str) -> Layout {
     match name {
         "tiled" => Layout::Tiled,
@@ -215,12 +220,13 @@ fn main() {
 
     let yaml_config: YAMLConfig = use_layout(&layout_path);
 
-    let (focus_tuple, all_panes) = build_panes(yaml_config);
+    let (focus_tuple, window_panes) = build_panes(yaml_config);
 
-    let focus_pane = all_panes
-        .get(focus_tuple[0])
+    let focus_pane = window_panes
+        .0
+        .get(focus_tuple.0)
         .expect("Window to focus should exist!")
-        .get(focus_tuple[1])
+        .get(focus_tuple.1)
         .expect("Pane to focus should exist!");
 
     match focus_pane.focus() {
@@ -229,9 +235,8 @@ fn main() {
     }
 }
 
-// TODO: Convert return types into newtypes (FocusTuple, WindowPaneTuple)
-fn build_panes(yaml_config: YAMLConfig) -> (Vec<usize>, Vec<Vec<Pane>>) {
-    let mut focus_tuple = vec![0, 0];
+fn build_panes(yaml_config: YAMLConfig) -> (FocusTuple, WindowPanes) {
+    let mut focus_tuple = FocusTuple(0, 0);
     let mut all_panes = vec![];
     let mut focus_list = vec![];
 
@@ -240,7 +245,7 @@ fn build_panes(yaml_config: YAMLConfig) -> (Vec<usize>, Vec<Vec<Pane>>) {
             focus_list.push(vec![]);
 
             if window.focus {
-                focus_tuple = vec![window_index, 0];
+                focus_tuple = FocusTuple(window_index, 0);
             }
 
             let layout =
@@ -286,7 +291,7 @@ fn build_panes(yaml_config: YAMLConfig) -> (Vec<usize>, Vec<Vec<Pane>>) {
                 let should_focus = focus_list[window_index].get(i).expect("Focus should exist");
 
                 if *should_focus == true {
-                    focus_tuple = vec![window_index, i];
+                    focus_tuple = FocusTuple(window_index, i);
                 }
 
                 for cmd in command_group {
@@ -295,5 +300,5 @@ fn build_panes(yaml_config: YAMLConfig) -> (Vec<usize>, Vec<Vec<Pane>>) {
             }
         }
     }
-    (focus_tuple, all_panes)
+    (focus_tuple, WindowPanes(all_panes))
 }
