@@ -209,3 +209,8 @@ complete -x -c weztermocil -a '(weztermocil --list)'
 
 # Thanks
 This was heavily inspired by [Teamocil](https://github.com/remi/teamocil) and [iTermocil](https://github.com/TomAnthony/itermocil). Without these 2 projects, I wouldn't have decided to make the same thing for Wezterm.
+
+# License
+Teamocil is © 2024 [Alex Caza](https://alexcaza.com) and may be freely
+distributed under the [MIT license](https://github.com/alexcaza/weztermocil/blob/master/LICENSE.md).
+See the `LICENSE.md` file for more information.
