@@ -1,5 +1,5 @@
 # Introduction
-Weztermocil allows you to setup pre-configured layouts of windows and panes in Wezterm, having each open in a specified directory and execute specified commands. You do this by writing YAML files to save your layouts. 
+Weztermocil allows you to setup pre-configured layouts of windows and panes in [Wezterm](https://wezfurlong.org/wezterm/index.html), having each open in a specified directory and execute specified commands. You do this by writing YAML files to save your layouts. 
 
 This project was inspired by [Teamocil](https://github.com/remi/teamocil) and [iTermocil](https://github.com/TomAnthony/itermocil), and was designed to be able to use your existing Teamocil and iTermocil configuration files.
 
