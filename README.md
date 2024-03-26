@@ -7,11 +7,52 @@ This project was inspired by [Teamocil](https://github.com/remi/teamocil) and [i
 
 ## Installation
 
-TODO!
+### Homebrew
+<details>
+  <summary>Hombrew installation instructions</summary>
+```bash
+# Install `weztermocil` via Homebrew
+# This may take a while to complete as it's building from source
+$ brew update
+$ brew install alexcaza/weztermocil 
+```
+</details>
 
-## Homebrew
+### Nix
+<details>
+  <summary>Nix installation instructions</summary>
+  The recommended way is to use an overlay within NixOS or home-manager.
+  If this package becomes stable, I might release it officially through nixpkgs.
+```nix
+(self: super: 
+  let
+    src = super.fetchFromGitHub {
+      owner = "alexcaza";
+      repo = "weztermocil";
+      rev = "320ec85194c21223dace0851343b7295d37ba1ba";
+      hash = "sha256-lGPwvZcjLjlyC/aav1xLVAOqieMDnpXCr79mV+NUvy4=";
+    };
+in {
+    weztermocil = super.callPackage src {};
+})
+```
+</details>
 
-## Nix
+### Post-install
+```shell
+# Create your layout directory
+$ mkdir ~/.weztermocil
+
+# Edit ~/.weztermocil/sample.yml (look for sample layouts in this very `README.md`)
+# There are also a variety of example files in 'test_layouts' directory in this repo
+$ weztermocil --edit sample
+
+# Run your newly-created sample layout
+$ weztermocil sample
+
+# Note that you can also use ~/.teamocil or ~/.itermocil as your directory, if you're a teamocil/itermocil user.
+```
+
 
 ## Usage
 
