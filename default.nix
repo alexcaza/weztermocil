@@ -1,4 +1,9 @@
-{pkgs ? import <nixpkgs> {}}: let
+{
+  nixpkgs ? import (builtins.fetchgit {
+    url = "github:nixos/nixpkgs/nixpkgs-unstable";
+  }),
+  pkgs ? import nixpkgs
+}: let
   manifest = (pkgs.lib.importTOML ./Cargo.toml).package;
 in
   pkgs.rustPlatform.buildRustPackage {
