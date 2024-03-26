@@ -30,7 +30,7 @@
             inherit name;
             drv = packages.${name};
           };
-          defaultApp = apps.${name};
+          defaultApp = app.${name};
 
           devShells.default = mkShell {
             buildInputs = [
