@@ -61,6 +61,8 @@ struct Args {
     list: bool,
 }
 
+const DIRS: &[&str] = &[".weztermocil", ".teamocil", ".itermocil"];
+
 type PaneIndex = usize;
 type WindowIndex = usize;
 struct FocusTuple(WindowIndex, PaneIndex);
@@ -80,11 +82,12 @@ fn layout_string_to_enum(name: &str) -> Layout {
     }
 }
 
-fn get_config_path() -> String {
-    let dirs = ["~/.weztermocil", "~/.teamocil", "~/.itermocil"];
+fn get_global_config_path() -> String {
     let mut path = String::from("");
-    for dir in dirs {
-        let expanded = tilde(dir);
+    for dir in DIRS {
+        let _dir = format!("~/{}", dir);
+        println!("dir: {}", _dir);
+        let expanded = tilde(&_dir);
         let paths = fs::read_dir(expanded.deref());
         match paths {
             Ok(_) => {
@@ -95,7 +98,27 @@ fn get_config_path() -> String {
     }
 
     if path == "" {
-        println!("Couldn't find .weztermocil, .teamocil or .itermocil in the current directory or in home (~)\nPlease make sure they exist before continuing");
+        println!("Couldn't find a .weztermocil, .teamocil or .itermocil folder in the home directory (~)\nPlease make sure one of them exists before continuing");
+        process::exit(1);
+    }
+
+    path
+}
+
+fn get_local_config_path() -> String {
+    let mut path = String::from("");
+    for dir in DIRS {
+        let paths = fs::read_dir(dir);
+        match paths {
+            Ok(_) => {
+                path = dir.to_string();
+            }
+            Err(_) => continue,
+        };
+    }
+
+    if path == "" {
+        println!("Couldn't find a .weztermocil, .teamocil or .itermocil folder in the current directory\nPlease make sure one of them exists before continuing");
         process::exit(1);
     }
 
@@ -103,7 +126,7 @@ fn get_config_path() -> String {
 }
 
 fn list_layouts() {
-    let path = get_config_path();
+    let path = get_global_config_path();
     // We've already validated that the path exists, so we can unwrap here.
     let entries = fs::read_dir(path).unwrap();
     for entry in entries {
@@ -112,27 +135,29 @@ fn list_layouts() {
 }
 
 fn get_path_for_layout_file(layout_name: String) -> Result<String, String> {
-    let global_path = tilde("~/.weztermocil").to_string();
     let current_dir = std::env::current_dir()
         .unwrap()
         .into_os_string()
         .into_string()
         .unwrap();
     let current_dir_fp = format!("{}/{}", current_dir, layout_name);
-    let local_layout_dir_fp = format!("{}/.weztermocil/{}", current_dir, layout_name);
-    let global_layout_fp = format!("{}/{}", global_path, layout_name);
-
     let in_current_dir = fs::File::open(&current_dir_fp);
-    let in_local_layout_dir = fs::File::open(&local_layout_dir_fp);
-    let in_global_layout = fs::File::open(&global_layout_fp);
 
     if let Ok(_) = in_current_dir {
         return Ok(current_dir_fp);
     }
 
+    let local_layout_dir_path = get_local_config_path();
+    let local_layout_dir_fp = format!("{}/{}/{}", current_dir, local_layout_dir_path, layout_name);
+    let in_local_layout_dir = fs::File::open(&local_layout_dir_fp);
+
     if let Ok(_) = in_local_layout_dir {
         return Ok(local_layout_dir_fp);
     }
+
+    let global_path = get_global_config_path();
+    let global_layout_fp = format!("{}/{}", global_path, layout_name);
+    let in_global_layout = fs::File::open(&global_layout_fp);
 
     if let Ok(_) = in_global_layout {
         return Ok(global_layout_fp);
@@ -249,9 +274,9 @@ fn main() {
     let focus_pane = window_panes
         .0
         .get(focus_tuple.0)
-        .expect("Window to focus should exist!")
+        .expect("Window to focus should exist!\nIs the layout file empty?")
         .get(focus_tuple.1)
-        .expect("Pane to focus should exist!");
+        .expect("Pane to focus should exist!\nIs the layout file malformed?");
 
     match focus_pane.focus() {
         Ok(res) => res,
