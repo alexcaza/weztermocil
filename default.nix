@@ -1,5 +1,5 @@
 {
-  nixpkgs ? import (builtins.fetchgit {
+  nixpkgs ? import (builtins.fetchGit {
     url = "github:nixos/nixpkgs/nixpkgs-unstable";
   }),
   pkgs ? import nixpkgs
