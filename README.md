@@ -39,9 +39,9 @@ in {
 # Create your layout directory
 $ mkdir ~/.weztermocil
 
-# Create sample file (look for sample layouts in this very `README.md`)
+# Open a new sample file with your editor of choice (look for sample layouts in this very `README.md`)
 # There are also a variety of example files in the 'samples' directory of this repo
-$ vim ~/.weztermocil/sample.yml
+$ $EDITOR ~/.weztermocil/sample.yml
 
 # Run your newly-created sample layout
 $ weztermocil sample
