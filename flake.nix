@@ -14,13 +14,24 @@
     flake-utils.lib.eachDefaultSystem
     (
       system: let
+        name = "weztermocil";
         pkgs = import nixpkgs {
           inherit system;
           overlays = [rust-overlay.overlays.default];
         };
+        project = pkgs.callPackage ./. {};
         toolchain = pkgs.rust-bin.fromRustupToolchainFile ./toolchain.toml;
       in
-        with pkgs; {
+        with pkgs; rec {
+          packages.${name} = project;
+          defaultPackage = packages.${name};
+
+          app.weztermocil = flake-utils.lib.mkApp {
+            inherit name;
+            drv = packages.${name};
+          };
+          defaultApp = apps.${name};
+
           devShells.default = mkShell {
             buildInputs = [
               openssl
