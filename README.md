@@ -8,21 +8,18 @@ This project was inspired by [Teamocil](https://github.com/remi/teamocil) and [i
 ## Installation
 
 ### Homebrew
-<details>
-  <summary>Hombrew installation instructions</summary>
 ```bash
 # Install `weztermocil` via Homebrew
 # This may take a while to complete as it's building from source
 $ brew update
 $ brew install alexcaza/weztermocil 
 ```
-</details>
 
 ### Nix
-<details>
-  <summary>Nix installation instructions</summary>
-  The recommended way is to use an overlay within NixOS or home-manager.
-  If this package becomes stable, I might release it officially through nixpkgs.
+The recommended way is to use an overlay within NixOS or home-manager.
+
+If this package becomes stable, I might release it officially through nixpkgs.
+
 ```nix
 (self: super: 
   let
@@ -36,16 +33,15 @@ in {
     weztermocil = super.callPackage src {};
 })
 ```
-</details>
 
 ### Post-install
 ```shell
 # Create your layout directory
 $ mkdir ~/.weztermocil
 
-# Edit ~/.weztermocil/sample.yml (look for sample layouts in this very `README.md`)
-# There are also a variety of example files in 'test_layouts' directory in this repo
-$ weztermocil --edit sample
+# Create sample file (look for sample layouts in this very `README.md`)
+# There are also a variety of example files in the 'samples' directory of this repo
+$ vim ~/.weztermocil/sample.yml
 
 # Run your newly-created sample layout
 $ weztermocil sample
