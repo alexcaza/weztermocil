@@ -1,9 +1,10 @@
 {
-  nixpkgs ? import (builtins.fetchGit {
-    url = "https://github.com/NixOS/nixpkgs.git";
-    ref = "nixpkgs-unstable";
-  }),
-  pkgs ? import nixpkgs
+  nixpkgs ?
+    import (builtins.fetchGit {
+      url = "https://github.com/NixOS/nixpkgs.git";
+      ref = "nixpkgs-unstable";
+    }),
+  pkgs ? import nixpkgs,
 }: let
   manifest = (pkgs.lib.importTOML ./Cargo.toml).package;
 in
