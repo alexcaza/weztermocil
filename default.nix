@@ -1,6 +1,7 @@
 {
   nixpkgs ? import (builtins.fetchGit {
-    url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    url = "https://github.com/NixOS/nixpkgs.git";
+    ref = "nixpkgs-unstable";
   }),
   pkgs ? import nixpkgs
 }: let
