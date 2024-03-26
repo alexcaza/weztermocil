@@ -1,5 +1,6 @@
 use std::{
     env, fs,
+    ops::Deref,
     process::{self, Command},
 };
 
@@ -79,11 +80,34 @@ fn layout_string_to_enum(name: &str) -> Layout {
     }
 }
 
+fn get_config_path() -> String {
+    let dirs = ["~/.weztermocil", "~/.teamocil", "~/.itermocil"];
+    let mut path = String::from("");
+    for dir in dirs {
+        let expanded = tilde(dir);
+        let paths = fs::read_dir(expanded.deref());
+        match paths {
+            Ok(_) => {
+                path = expanded.to_string();
+            }
+            Err(_) => continue,
+        };
+    }
+
+    if path == "" {
+        println!("Couldn't find .weztermocil, .teamocil or .itermocil in the current directory or in home (~)\nPlease make sure they exist before continuing");
+        process::exit(1);
+    }
+
+    path
+}
+
 fn list_layouts() {
-    let dir = tilde("~/.weztermocil").to_string();
-    let paths = fs::read_dir(dir).unwrap();
-    for path in paths {
-        println!("{}", path.unwrap().file_name().into_string().unwrap());
+    let path = get_config_path();
+    // We've already validated that the path exists, so we can unwrap here.
+    let entries = fs::read_dir(path).unwrap();
+    for entry in entries {
+        println!("{}", entry.unwrap().file_name().into_string().unwrap());
     }
 }
 
