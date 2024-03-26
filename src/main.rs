@@ -52,7 +52,7 @@ struct Args {
     #[arg(long)]
     layout: Option<String>,
     #[arg(long, action)]
-    here: Option<bool>,
+    here: bool,
     #[arg(long)]
     edit: Option<String>,
     #[arg(long)]
@@ -204,6 +204,110 @@ fn use_layout(path: &str) -> YAMLConfig {
     }
 }
 
+fn current_window_to_pane() -> Pane {
+    // I can't see a world where we run this program intentionally outside of wezterm
+    let pane_id = env::var("WEZTERM_PANE").unwrap();
+    Pane {
+        id: pane_id,
+        parent_id: None,
+    }
+}
+
+fn qualify_layout_file(path: &str) -> String {
+    if path.contains(".yml") == false {
+        format!("{}.yml", path)
+    } else {
+        String::from(path)
+    }
+}
+
+fn build_panes(yaml_config: YAMLConfig, starting_pane: Option<&Pane>) -> (FocusTuple, WindowPanes) {
+    let mut focus_tuple = FocusTuple(0, 0);
+    let mut all_panes = vec![];
+    let mut focus_list = vec![];
+
+    if let Some(windows) = yaml_config.windows {
+        for (window_index, window) in windows.iter().enumerate() {
+            focus_list.push(vec![]);
+
+            if window.focus {
+                focus_tuple = FocusTuple(window_index, 0);
+            }
+
+            let layout =
+                layout_string_to_enum(&window.layout.clone().unwrap_or(String::from("tiled")));
+            let panes = window.panes.clone().unwrap_or(PaneConfig::Commands(vec![]));
+            let main_pane: Pane;
+
+            if starting_pane.is_none() || window_index > 0 {
+                main_pane = match window.root.clone() {
+                    Some(cwd) => Pane::new(Some(&cwd)),
+                    None => Pane::new(None),
+                };
+            } else {
+                main_pane = starting_pane.unwrap().clone();
+                let current_dir = std::env::current_dir()
+                    .unwrap()
+                    .into_os_string()
+                    .into_string()
+                    .unwrap();
+
+                let dir = match window.root.clone() {
+                    Some(cwd) => cwd,
+                    None => current_dir,
+                };
+
+                main_pane.run_command(&format!("cd {}", tilde(&dir)));
+                main_pane.run_command("clear");
+            }
+
+            if let Some(tab_name) = window.name.clone() {
+                main_pane
+                    .set_tab_title(&tab_name)
+                    .expect("Window name should've been set. Something bad happened here.");
+            }
+
+            let mut commands = vec![];
+            match panes {
+                PaneConfig::Commands(_commands) => {
+                    for c in _commands {
+                        commands.push(vec![c]);
+                        // If it's just a list of commands, you can't focus a pane
+                        focus_list[window_index].push(false);
+                    }
+                }
+                PaneConfig::Hash(config) => {
+                    for c in config {
+                        if let Some(cmds) = c.commands {
+                            commands.push(cmds);
+                        }
+
+                        focus_list[window_index].push(c.focus);
+                    }
+                }
+            };
+
+            let total_panes = TotalPanes(commands.len());
+
+            all_panes.push(layout.create(total_panes, main_pane).unwrap_or(vec![]));
+
+            for (i, pane) in all_panes[window_index].iter().enumerate() {
+                let command_group = commands.get(i).expect("Pane option should exist!");
+                let should_focus = focus_list[window_index].get(i).expect("Focus should exist");
+
+                if *should_focus == true {
+                    focus_tuple = FocusTuple(window_index, i);
+                }
+
+                for cmd in command_group {
+                    pane.run_command(cmd);
+                }
+            }
+        }
+    }
+    (focus_tuple, WindowPanes(all_panes))
+}
+
 fn main() {
     let args = Args::parse();
 
@@ -287,7 +391,11 @@ fn main() {
 
     let yaml_config: YAMLConfig = use_layout(&layout_path);
 
-    let (focus_tuple, window_panes) = build_panes(yaml_config);
+    let main_window = match args.here {
+        true => Some(current_window_to_pane()),
+        false => None,
+    };
+    let (focus_tuple, window_panes) = build_panes(yaml_config, main_window.as_ref());
 
     let focus_pane = window_panes
         .0
@@ -300,80 +408,4 @@ fn main() {
         Ok(res) => res,
         Err(error) => println!("{:?}", error),
     }
-}
-
-fn qualify_layout_file(path: &str) -> String {
-    if path.contains(".yml") == false {
-        format!("{}.yml", path)
-    } else {
-        String::from(path)
-    }
-}
-
-fn build_panes(yaml_config: YAMLConfig) -> (FocusTuple, WindowPanes) {
-    let mut focus_tuple = FocusTuple(0, 0);
-    let mut all_panes = vec![];
-    let mut focus_list = vec![];
-
-    if let Some(windows) = yaml_config.windows {
-        for (window_index, window) in windows.iter().enumerate() {
-            focus_list.push(vec![]);
-
-            if window.focus {
-                focus_tuple = FocusTuple(window_index, 0);
-            }
-
-            let layout =
-                layout_string_to_enum(&window.layout.clone().unwrap_or(String::from("tiled")));
-            let panes = window.panes.clone().unwrap_or(PaneConfig::Commands(vec![]));
-            let main_pane = match window.root.clone() {
-                Some(cwd) => Pane::new(Some(&cwd)),
-                None => Pane::new(None),
-            };
-
-            if let Some(tab_name) = window.name.clone() {
-                main_pane
-                    .set_tab_title(&tab_name)
-                    .expect("Window name should've been set. Something bad happened here.");
-            }
-
-            let mut commands = vec![];
-            match panes {
-                PaneConfig::Commands(_commands) => {
-                    for c in _commands {
-                        commands.push(vec![c]);
-                        // If it's just a list of commands, you can't focus a pane
-                        focus_list[window_index].push(false);
-                    }
-                }
-                PaneConfig::Hash(config) => {
-                    for c in config {
-                        if let Some(cmds) = c.commands {
-                            commands.push(cmds);
-                        }
-
-                        focus_list[window_index].push(c.focus);
-                    }
-                }
-            };
-
-            let total_panes = TotalPanes(commands.len());
-
-            all_panes.push(layout.create(total_panes, main_pane).unwrap_or(vec![]));
-
-            for (i, pane) in all_panes[window_index].iter().enumerate() {
-                let command_group = commands.get(i).expect("Pane option should exist!");
-                let should_focus = focus_list[window_index].get(i).expect("Focus should exist");
-
-                if *should_focus == true {
-                    focus_tuple = FocusTuple(window_index, i);
-                }
-
-                for cmd in command_group {
-                    pane.run_command(cmd);
-                }
-            }
-        }
-    }
-    (focus_tuple, WindowPanes(all_panes))
 }
