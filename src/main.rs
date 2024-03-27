@@ -124,18 +124,38 @@ fn get_local_config_path() -> Result<String, String> {
 
 fn list_layouts() {
     let path = get_global_config_path();
+    let local = get_local_config_path();
+
     match path {
         Ok(p) => {
+            println!("Global layouts (~/.weztermocil):");
+
             // We've already validated that the path exists, so we can unwrap here.
             let entries = fs::read_dir(p).unwrap();
             for entry in entries {
-                println!("{}", entry.unwrap().file_name().into_string().unwrap());
+                println!("=> {}", entry.unwrap().file_name().into_string().unwrap());
             }
         }
         Err(e) => {
             println!("{}", e);
             process::exit(1);
         }
+    }
+
+    match local {
+        Ok(p) => {
+            // We've already validated that the path exists, so we can unwrap here.
+            let entries = fs::read_dir(p).unwrap().collect::<Vec<_>>();
+            if entries.len() < 1 {
+                return;
+            }
+
+            println!("\nLocal layouts:");
+            for entry in entries {
+                println!("=> {}", entry.unwrap().file_name().into_string().unwrap());
+            }
+        }
+        Err(_) => {}
     }
 }
 
@@ -366,7 +386,7 @@ fn main() {
 
     if let Some(path) = args.layout {
         let layout = qualify_layout_file(&path);
-        let f = match fs::canonicalize(&layout) {
+        let f = match fs::canonicalize(&tilde(&layout).as_ref()) {
             Ok(path) => path.into_os_string().into_string(),
             Err(_) => {
                 println!("Couldn't find file at path: {}. Does it exist?", layout);
