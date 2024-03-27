@@ -337,7 +337,8 @@ fn main() {
     }
 
     if let Some(path) = args.show {
-        let path = get_path_for_layout_file(&path);
+        let layout = qualify_layout_file(&path);
+        let path = get_path_for_layout_file(&layout);
         match path {
             Ok(p) => {
                 println!("Found layout at path: {}", p);
