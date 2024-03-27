@@ -52,11 +52,36 @@ $ weztermocil sample
 
 ## Usage
 
-```bash
+```shell
 $ weztermocil [options] [layout-name]
 ```
 
+Alternatively, if you have a `weztermocil.yml` file in the current directory you can simply run weztermocil and it will use that file, so you can have files inside your projects and sync via Github etc:
+
+```shell
+$ cd my_project
+$ weztermocil
+```
+
+You can also add local layouts to a project by adding a `.weztermocil` directory. When calling `weztermocil --list`, you'll see the available layouts in the current directory listed as well.
+
+To use a local layout, simply call it by name.
+```shell
+$ mkdir .weztermocil
+$ touch .weztermocil/sample.yml
+$ weztermocil sample
+```
+
+Weztermocil will follow this lookup path:
+- No layout name supplied
+  - look for weztermocil.yml file in current directory.
+- Layout name supplied
+  - Look for layout in local `.weztermocil` folder
+  - Look for layout in global `~/.weztermocil` folder
+
 ### Global options
+
+Weztermocil _should be_ compatible with all of teamocil and itermocil's flags, and they _should_ all work the same way.
 
 | Option      | Description
 |-------------|----------------------------
