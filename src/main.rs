@@ -261,7 +261,7 @@ fn build_panes(yaml_config: YAMLConfig, starting_pane: Option<&Pane>) -> (FocusT
 
             if starting_pane.is_none() || window_index > 0 {
                 main_pane = match window.root.clone() {
-                    Some(cwd) => Pane::new(Some(&cwd)),
+                    Some(cwd) => Pane::new(Some(&tilde(&cwd))),
                     None => Pane::new(None),
                 };
             } else {
