@@ -3,6 +3,11 @@ Weztermocil allows you to setup pre-configured layouts of windows and panes in [
 
 This project was inspired by [Teamocil](https://github.com/remi/teamocil) and [iTermocil](https://github.com/TomAnthony/itermocil), and was designed to be able to use your existing Teamocil and iTermocil configuration files.
 
+https://github.com/alexcaza/weztermocil/assets/6993273/c4e009ee-dcff-46b2-87f3-a4f0d476830f
+
+
+
+
 **Weztermocil is still very early days, and things may break!**
 
 ## Installation
