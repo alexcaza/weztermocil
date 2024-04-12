@@ -31,8 +31,8 @@ If this package becomes stable, I might release it officially through nixpkgs.
     src = super.fetchFromGitHub {
       owner = "alexcaza";
       repo = "weztermocil";
-      rev = "v0.1.2";
-      hash = "sha256-tHftuC/cDkYXo0poTu7/sK4mRuPrzeqB4QCV6fJMVHI=";
+      rev = "v0.1.4";
+      hash = "sha256-9NWhGnLxZtHKHAUZ3Ha5NlMMZ7RZ0Irc50HyILX1MjA=";
     };
 in {
     weztermocil = super.callPackage src {};
